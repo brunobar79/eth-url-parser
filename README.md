@@ -4,7 +4,7 @@
 ![CircleCI branch](https://img.shields.io/circleci/project/github/brunobar79/eth-url-parser/master.svg)
 
 
-Module that supports encoding / decoding of all the ethereum standard urls: [ERC-681](https://eips.ethereum.org/EIPS/eip-681) and [ERC-831](https://eips.ethereum.org/EIPS/eip-831)
+Module that supports parsing / parsing of all the different ethereum standard urls: [ERC-681](https://eips.ethereum.org/EIPS/eip-681) and [ERC-831](https://eips.ethereum.org/EIPS/eip-831)
 
 This module contains two functions:
 
