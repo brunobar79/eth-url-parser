@@ -4,11 +4,11 @@ Module that supports encoding / decoding of all the ethereum standard urls: [ERC
 
 This module contains two functions:
 
-## `parseURL(string)`
+## `parse(string)`
 
 Takes in a string of an Ethereum URL and returns an object matching that URL according to the previously mentioned standards
 
-## `buildURL(object)`
+## `build(object)`
 
 Takes in an object representing the different parts of the ethereum url and returns a string representing a valid ethereum url
 

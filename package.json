@@ -33,5 +33,9 @@
   },
   "files": [
     "dist"
-  ]
+  ],
+  "dependencies": {
+    "bignumber.js": "^7.2.1",
+    "qs": "^6.5.2"
+  }
 }

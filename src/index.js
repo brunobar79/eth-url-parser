@@ -1,70 +1,112 @@
+'use strict'
+
+import qs from 'qs';
+import BigNumber from 'BigNumber.js';
+
 /**
- * Parse an Ethereum URI according to ERC-831
+ * Parse an Ethereum URI according to ERC-831 and ERC-681
  *
- * @param  {string} source URI string.
+ * @param  {string} uri string.
  *
- * @return {object}        Contains { prefix: string (default: `'pay'`), payload: string }
+ * @return {object}
  */
-export function parseURI(source) {
-    if (!source || typeof source !== 'string') {
-        throw new Error('Source must be a string');
+export function parse(uri) {
+
+    if (!uri || typeof uri !== 'string') {
+        throw new Error('uri must be a string');
     }
 
-    if (source.substring(0, 9) !== 'ethereum:') {
+    if (uri.substring(0, 9) !== 'ethereum:') {
         throw new Error('Not an Ethereum URI');
     }
 
-    let prefix, payload;
+    let prefix;
+    let address_regex = '(0x[\\w]{40})';
 
-    if (source.substring(9, 11) === '0x') {
-        prefix = 'pay';
-        payload = source.substring(9);
+
+    if (uri.substring(9, 11).toLowerCase() === '0x') {
+        prefix = null;
     } else {
-        let cutOff = source.indexOf('-', 9);
+        let cutOff = uri.indexOf('-', 9);
 
         if (cutOff === -1) {
             throw new Error('Missing prefix');
         }
-
-        prefix = source.substring(9, cutOff)
-        payload = source.substring(cutOff + 1); // skip the dash
+        prefix = uri.substring(9, cutOff);
+        const rest = uri.substring(cutOff + 1);
+        // We need to adapt the regex to match ENS
+        if(rest.substring(0,2).toLowerCase() !== '0x'){
+            address_regex = '([a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,})';
+        }
     }
 
-    return { prefix, payload };
+    const full_regex = '^ethereum:(' + prefix + '-)?'+address_regex + '\\@?([\\w]*)*\\/?([\\w]*)*';
+
+    const exp = new RegExp(full_regex);
+    const data = uri.match(exp);
+    if(!data) {
+        throw new Error('Couldn not parse the url');
+    }
+
+    let parameters = uri.split('?');
+    parameters = parameters.length > 1 ? parameters[1] : '';
+    const params = qs.parse(parameters);
+
+    const obj = {
+        scheme: 'ethereum',
+        target_address: data[2],
+    };
+
+    if(prefix){
+        obj.prefix = prefix;
+    }
+
+    if(data[3]){
+        obj.chain_id = data[3];
+    }
+
+    if(data[4]){
+        obj.function_name = data[4];
+    }
+
+    if(Object.keys(params).length){
+        obj.parameters = params;
+        const amountKey = obj.function_name === 'transfer' ? 'uint256' : 'value';
+
+        if(obj.parameters[amountKey]) {
+            obj.parameters[amountKey] = new BigNumber(obj.parameters[amountKey], 10).toString();
+            if (!isFinite(obj.parameters[amountKey])) throw new Error('Invalid amount')
+            if (obj.parameters[amountKey] < 0) throw new Error('Invalid amount')
+        }
+    }
+
+    return obj;
 }
 
 /**
- * Parse an Ethereum URL according to ERC-681
+ * Builds a valid Ethereum URI based on the initial parameters
+ * @param  {object} data
  *
- * @param  {string} source URL string.
- *
- * @return {object}        Contains different members depending on extracted prefix:
- *                         * `pay` (default) => { prefix: `'pay'`, address: string, chainId: number (default: `1`) }
- *
+ * @return {string}
  */
-export function parseURL(source) {
-    const { prefix, payload } = parseURI(source);
+export function build(data) {
 
-    if (!(prefix in HANDLERS)) {
-        throw new Error(`Unknown prefix: ${prefix}`);
+    const { prefix, target_address, chain_id, function_name, parameters } = data;
+
+    const query = qs.stringify(parameters);
+    const amountKey = function_name === 'transfer' ? 'uint256' : 'value';
+
+    if(parameters[amountKey]) {
+        parameters[amountKey] = Number(parameters[amountKey]);
+
+        if (!isFinite(parameters[amountKey])) throw new Error('Invalid amount');
+        if (parameters[amountKey] < 0) throw new Error('Invalid amount');
     }
 
-    return HANDLERS[prefix](payload);
-}
-
-const HANDLERS = {
-    'pay'(payload) {
-        const cutoff = payload.search(/([@?\/]|$)/); // first of: `@`, `?`, `/`, EOF
-
-        const address = payload.substring(0, cutoff);
-        const remainder = payload.substring(cutoff).match(/^@([0-9]+)/);
-
-        const chainId = remainder && remainder[1] ? Number(remainder[1]) || 1 : 1;
-
-        return {
-            prefix: 'pay',
-            address,
-            chainId
-        };
-    }
+    return 'ethereum' + ':'
+    + prefix ? `${prefix}-` : ''
+    + target_address
+    + chain_id ? `@${chain_id}` : ''
+    + function_name ? `/${function_name}`:''
+    + (query ? '?' + query : '');
 }
