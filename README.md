@@ -36,13 +36,13 @@ Takes in an object representing the different parts of the ethereum url and retu
 ## Usage
 
 ```javascript
-import EthUrlParser from 'eth-url-parser';
+import { parse, build } from 'eth-url-parser';
 
-const parsedUrl = EthUrlParser.parse('ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD')
+const parsedUrl = parse('ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD')
 console.log(parseUrl.target_address)
 // '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD'
 
-const url =  EthUrlParser.build({
+const url =  build({
         scheme: 'ethereum',
         prefix: 'pay',
         target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD'
