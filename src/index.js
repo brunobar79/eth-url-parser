@@ -1,7 +1,7 @@
 'use strict'
 
 import qs from 'qs';
-import BigNumber from 'BigNumber.js';
+import { BigNumber } from 'bignumber.js';
 
 /**
  * Parse an Ethereum URI according to ERC-831 and ERC-681
