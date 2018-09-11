@@ -3479,25 +3479,31 @@ function parse$3(uri) {
  *
  * @return {string}
  */
-function build(data) {
-    var prefix = data.prefix,
-        target_address = data.target_address,
-        chain_id = data.chain_id,
-        function_name = data.function_name,
-        parameters = data.parameters;
+function build(_ref) {
+    var _ref$prefix = _ref.prefix,
+        prefix = _ref$prefix === undefined ? null : _ref$prefix,
+        target_address = _ref.target_address,
+        _ref$chain_id = _ref.chain_id,
+        chain_id = _ref$chain_id === undefined ? null : _ref$chain_id,
+        _ref$function_name = _ref.function_name,
+        function_name = _ref$function_name === undefined ? null : _ref$function_name,
+        _ref$parameters = _ref.parameters,
+        parameters = _ref$parameters === undefined ? null : _ref$parameters;
 
 
-    var query = lib.stringify(parameters);
-    var amountKey = function_name === 'transfer' ? 'uint256' : 'value';
-
-    if (parameters[amountKey]) {
-        parameters[amountKey] = Number(parameters[amountKey]);
-
-        if (!isFinite(parameters[amountKey])) throw new Error('Invalid amount');
-        if (parameters[amountKey] < 0) throw new Error('Invalid amount');
+    var query = null;
+    if (parameters) {
+        var amountKey = function_name === 'transfer' ? 'uint256' : 'value';
+        if (parameters[amountKey]) {
+            parameters[amountKey] = new BigNumber(parameters[amountKey], 10).toExponential().replace('+', '').replace('e0', '');
+            if (!isFinite(parameters[amountKey])) throw new Error('Invalid amount');
+            if (parameters[amountKey] < 0) throw new Error('Invalid amount');
+        }
+        query = lib.stringify(parameters);
     }
 
-    return 'ethereum' + ':' + prefix ? prefix + '-' : '' + target_address + chain_id ? '@' + chain_id : '' + function_name ? '/' + function_name : '' + (query ? '?' + query : '');
+    var url = 'ethereum:' + (prefix ? prefix + '-' : '') + target_address + (chain_id ? '@' + chain_id : '') + (function_name ? '/' + function_name : '') + (query ? '?' + query : '');
+    return url;
 }
 
 export { parse$3 as parse, build };

@@ -34,7 +34,8 @@ export function parse(uri) {
         }
         prefix = uri.substring(9, cutOff);
         const rest = uri.substring(cutOff + 1);
-        // We need to adapt the regex to match ENS
+
+        // Adapting the regex if ENS name detected
         if(rest.substring(0,2).toLowerCase() !== '0x'){
             address_regex = '([a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,})';
         }
@@ -89,24 +90,22 @@ export function parse(uri) {
  *
  * @return {string}
  */
-export function build(data) {
+export function build({ prefix = null, target_address, chain_id = null, function_name = null, parameters = null }) {
 
-    const { prefix, target_address, chain_id, function_name, parameters } = data;
-
-    const query = qs.stringify(parameters);
-    const amountKey = function_name === 'transfer' ? 'uint256' : 'value';
-
-    if(parameters[amountKey]) {
-        parameters[amountKey] = Number(parameters[amountKey]);
-
-        if (!isFinite(parameters[amountKey])) throw new Error('Invalid amount');
-        if (parameters[amountKey] < 0) throw new Error('Invalid amount');
+    let query = null;
+    if(parameters) {
+        const amountKey = function_name === 'transfer' ? 'uint256' : 'value';
+        if(parameters[amountKey]){
+            // This is weird. Scientific notation in JS is usually 2.014e+18
+            // but the EIP 681 shows no "+" sign ¯\_(ツ)_/¯
+            // source: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-681.md#semantics
+            parameters[amountKey] = new BigNumber(parameters[amountKey], 10).toExponential().replace('+','').replace('e0','');
+            if (!isFinite(parameters[amountKey])) throw new Error('Invalid amount');
+            if (parameters[amountKey] < 0) throw new Error('Invalid amount');
+        }
+        query = qs.stringify(parameters);
     }
 
-    return 'ethereum' + ':'
-    + prefix ? `${prefix}-` : ''
-    + target_address
-    + chain_id ? `@${chain_id}` : ''
-    + function_name ? `/${function_name}`:''
-    + (query ? '?' + query : '');
+    const url = `ethereum:${prefix?prefix+'-':''}${target_address}${chain_id ? `@${chain_id}` : ''}${function_name ? `/${function_name}`:''}${query ? '?' + query : ''}`;
+    return url;
 }

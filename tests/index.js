@@ -24,12 +24,12 @@ test('parse', (t) => {
         prefix: 'foo',
         target_address: 'doge-to-the-moon.eth',
     }, 'Can parse URI with an ENS name');
-    
+
     t.deepEqual(parse('ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD@42'), {
         scheme: 'ethereum',
         target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
         chain_id: '42'
-    }, 'Can parse URI with an chain id');
+    }, 'Can parse URI with chain id');
 
     t.deepEqual(parse('ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD/transfer?address=0x12345&uint256=1'), {
         scheme: 'ethereum',
@@ -54,33 +54,64 @@ test('parse', (t) => {
 
     t.end();
 });
-/*
+
 test('build', (t) => {
-    t.equals(build({}), {
-        prefix: 'pay',
-        address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
-        chainId: 1
-    }, 'Can parse URL with an address, implied prefix and implied chainId');
+    t.equals(build({
+        scheme: 'ethereum',
+        target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD'
+    }), 'ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
+    'Can build a URL with payload starting with `0x`');
 
-    t.deepEqual(build('ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD@42'), {
+    t.equals(build({
+        scheme: 'ethereum',
         prefix: 'pay',
-        address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
-        chainId: 42
-    }, 'Can parse URL with an address, implied prefix and specified chainId');
+        target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD'
+    }), 'ethereum:pay-0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
+    'Can build a URL with payload starting with `0x` and `pay` prefix');
 
-    t.deepEqual(build('ethereum:pay-0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD@42'), {
-        prefix: 'pay',
-        address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
-        chainId: 42
-    }, 'Can parse URL with an address, specified prefix and specified chainId');
+    t.equals(build({
+        scheme: 'ethereum',
+        prefix: 'foo',
+        target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD'
+    }), 'ethereum:foo-0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
+    'Can build a URL with payload starting with `0x` and `foo` prefix');
 
+    t.equals(build({
+        scheme: 'ethereum',
+        prefix: 'foo',
+        target_address: 'doge-to-the-moon.eth',
+    }), 'ethereum:foo-doge-to-the-moon.eth',
+    'Can build a URL with an ENS name');
 
-    t.deepEqual(build('ethereum:pay-doge-to-the-moon.eth@42'), {
-        prefix: 'pay',
-        address: 'doge-to-the-moon.eth',
-        chainId: 42
-    }, 'Can parse URL with an ENS address, specified prefix and specified chainId');
+    t.equals(build({
+        scheme: 'ethereum',
+        target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
+        chain_id: '42'
+    }), 'ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD@42',
+    'Can build a URL with chain id');
+
+    t.equals(build({
+        scheme: 'ethereum',
+        target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
+        function_name: 'transfer',
+        parameters: {
+            'address': '0x12345',
+            'uint256': '1'
+        }
+    }), 'ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD/transfer?address=0x12345&uint256=1',
+    'Can build a URL for an ERC20 token transfer');
+
+    t.equals(build({
+        scheme: 'ethereum',
+        target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
+        parameters: {
+            'value': '2014000000000000000',
+            'gas': '10',
+            'gasLimit': '21000',
+            'gasPrice': '50',
+        }
+    }), 'ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD?value=2.014e18&gas=10&gasLimit=21000&gasPrice=50',
+    'Can build a url with value and gas parameters');
 
     t.end();
 });
-*/
