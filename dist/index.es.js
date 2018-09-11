@@ -3424,7 +3424,8 @@ function parse$3(uri) {
         }
         prefix = uri.substring(9, cutOff);
         var rest = uri.substring(cutOff + 1);
-        // We need to adapt the regex to match ENS
+
+        // Adapting the regex if ENS name detected
         if (rest.substring(0, 2).toLowerCase() !== '0x') {
             address_regex = '([a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,})';
         }
@@ -3495,6 +3496,9 @@ function build(_ref) {
     if (parameters) {
         var amountKey = function_name === 'transfer' ? 'uint256' : 'value';
         if (parameters[amountKey]) {
+            // This is weird. Scientific notation in JS is usually 2.014e+18
+            // but the EIP 681 shows no "+" sign ¯\_(ツ)_/¯
+            // source: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-681.md#semantics
             parameters[amountKey] = new BigNumber(parameters[amountKey], 10).toExponential().replace('+', '').replace('e0', '');
             if (!isFinite(parameters[amountKey])) throw new Error('Invalid amount');
             if (parameters[amountKey] < 0) throw new Error('Invalid amount');
