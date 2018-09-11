@@ -1,13 +1,21 @@
 {
   "name": "eth-url-parser",
-  "version": "0.1.1",
-  "description": "Ethereum url parsing",
+  "version": "1.0.0",
+  "description": "Ethereum url parsing library",
   "scripts": {
     "test": "npm run build && node ./tests | tap-spec",
     "build": "rollup -c",
     "start": "rollup -c -w",
     "prepublish": "npm run build"
   },
+  "keywords": [
+    "ethereum",
+    "url",
+    "parser",
+    "eip681",
+    "erc681",
+    "web3"
+  ],
   "author": "Bruno Barbieri",
   "license": "MIT",
   "repository": {
