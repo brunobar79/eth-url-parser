@@ -1,6 +1,8 @@
 # eth-url-parser
 
-[![npm](https://img.shields.io/npm/v/eth-url-parser.svg)](https://npmjs.com/package/eth-url-parser) [![npm](https://img.shields.io/npm/dm/eth-url-parser.svg)](https://npmjs.com/package/eth-url-parser)
+[![npm](https://img.shields.io/npm/v/eth-url-parser.svg)](https://npmjs.com/package/eth-url-parser) [![npm](https://img.shields.io/npm/dm/eth-url-parser.svg)](https://npmjs.com/package/eth-url-parser) 
+![CircleCI branch](https://img.shields.io/circleci/project/github/brunobar79/eth-url-parser/master.svg)
+
 
 Module that supports encoding / decoding of all the ethereum standard urls: [ERC-681](https://eips.ethereum.org/EIPS/eip-681) and [ERC-831](https://eips.ethereum.org/EIPS/eip-831)
 
