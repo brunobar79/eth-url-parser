@@ -1,6 +1,6 @@
 {
   "name": "eth-url-parser",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Ethereum url parsing library",
   "scripts": {
     "test": "npm run build && node ./tests | tap-spec",
