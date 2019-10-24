@@ -20,8 +20,7 @@ The returned object looks like this:
     chain_id: '1',
     parameters: {
         'value': '2014000000000000000', // (in WEI)
-        'gas': '10',
-        'gasLimit': '45000',
+        'gas': '45000', // can be also gasLimit
         'gasPrice': '50',
     }
 }
