@@ -1,6 +1,6 @@
 {
   "name": "eth-url-parser",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Ethereum url parsing library",
   "scripts": {
     "test": "npm run build && node ./tests | tap-spec",
@@ -45,5 +45,8 @@
   "dependencies": {
     "bignumber.js": "^7.2.1",
     "qs": "^6.5.2"
+  },
+  "resolutions": {
+    "**/trim": "0.0.3"
   }
 }
