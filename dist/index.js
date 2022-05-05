@@ -15,7 +15,7 @@ function parse(uri) {
     throw new Error("Not an Ethereum URI");
   }
   var prefix = void 0;
-  var address_regex = "(0x[\\w]{40})";
+  var address_regex = "0x[\\w]{40}";
   if (uri.slice(9, 11).toLowerCase() === "0x") {
     prefix = void 0;
   } else {
@@ -26,10 +26,10 @@ function parse(uri) {
     prefix = uri.slice(9, cutOff);
     var rest = uri.slice(Math.max(0, cutOff + 1));
     if (rest.slice(0, 2).toLowerCase() !== "0x") {
-      address_regex = "([a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9].[a-zA-Z]{2,})";
+      address_regex = "[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9].[a-zA-Z]{2,}";
     }
   }
-  var full_regex = "^ethereum:(" + prefix + "-)?" + address_regex + "\\@?([\\w]*)*\\/?([\\w]*)*";
+  var full_regex = "^ethereum:(" + prefix + "-)?(" + address_regex + ")\\@?([\\w]*)*\\/?([\\w]*)*";
   var exp = new RegExp(full_regex);
   var data = uri.match(exp);
   if (!data) {

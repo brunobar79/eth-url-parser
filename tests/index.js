@@ -84,6 +84,42 @@ test('parse', (t) => {
         'Can parse a url with value and gas parameters'
     );
 
+    t.deepEqual(
+        parse(
+            'ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD/custom_function?value=2.014e18&gas=10&gasLimit=21000&gasPrice=50'
+        ),
+        {
+            scheme: 'ethereum',
+            target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
+            function_name: 'custom_function',
+            parameters: {
+                value: '2014000000000000000',
+                gas: '10',
+                gasLimit: '21000',
+                gasPrice: '50',
+            },
+        },
+        'Can parse a url with function name, value, and gas parameters'
+    );
+
+    // t.deepEqual(
+    //     parse(
+    //         'ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD/custom_function?value=2.014e18&gas=10&gasLimit=21000&gasPrice=50&uint8=1&uint256=2'
+    //     ),
+    //     {
+    //         scheme: 'ethereum',
+    //         target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
+    //         function_name: 'custom_function',
+    //         parameters: {
+    //             value: '2014000000000000000',
+    //             gas: '10',
+    //             gasLimit: '21000',
+    //             gasPrice: '50',
+    //         },
+    //     },
+    //     'Can parse a url with function name, value, gas parameters, and function parameters'
+    // );
+
     t.end();
 });
 

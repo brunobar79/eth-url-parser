@@ -2,7 +2,7 @@ declare type ETHAddress = string;
 declare type ENSName = string;
 declare type ParseResult = {
     scheme: 'ethereum';
-    prefix?: string;
+    prefix?: 'pay' | string;
     target_address: ETHAddress | ENSName;
     function_name?: string;
     chain_id?: `${number}`;

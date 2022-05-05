@@ -27,17 +27,20 @@ export type ParseResult = {
  * @return {object}
  */
 export function parse(uri): ParseResult {
+    // Verify we are dealing with a string
     if (!uri || typeof uri !== 'string') {
         throw new Error('uri must be a string');
     }
 
+    // Verify we are dealing with an ethereum link
     if (uri.slice(0, 9) !== 'ethereum:') {
         throw new Error('Not an Ethereum URI');
     }
 
     let prefix;
-    let address_regex = '(0x[\\w]{40})';
+    let address_regex = '0x[\\w]{40}';
 
+    // Figure out wether we need address of ens matching
     if (uri.slice(9, 11).toLowerCase() === '0x') {
         prefix = undefined;
     } else {
@@ -53,16 +56,12 @@ export function parse(uri): ParseResult {
         // Adapting the regex if ENS name detected
         if (rest.slice(0, 2).toLowerCase() !== '0x') {
             address_regex =
-                '([a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9].[a-zA-Z]{2,})';
+                '[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9].[a-zA-Z]{2,}';
         }
     }
 
-    const full_regex =
-        '^ethereum:(' +
-        prefix +
-        '-)?' +
-        address_regex +
-        '\\@?([\\w]*)*\\/?([\\w]*)*';
+    // Full regex for matching
+    const full_regex = `^ethereum:(${prefix}-)?(${address_regex})\\@?([\\w]*)*\\/?([\\w]*)*`;
 
     const exp = new RegExp(full_regex);
     const data = uri.match(exp);
