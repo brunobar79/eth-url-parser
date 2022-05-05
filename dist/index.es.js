@@ -8,22 +8,9 @@ function parse(uri) {
   if (uri.slice(0, 9) !== "ethereum:") {
     throw new Error("Not an Ethereum URI");
   }
-  var prefix = void 0;
-  var address_regex = "0x[\\w]{40}";
-  if (uri.slice(9, 11).toLowerCase() === "0x") {
-    prefix = void 0;
-  } else {
-    var cutOff = uri.indexOf("-", 9);
-    if (cutOff === -1) {
-      throw new Error("Missing prefix");
-    }
-    prefix = uri.slice(9, cutOff);
-    var rest = uri.slice(Math.max(0, cutOff + 1));
-    if (rest.slice(0, 2).toLowerCase() !== "0x") {
-      address_regex = "[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9].[a-zA-Z]{2,}";
-    }
-  }
-  var full_regex = "^ethereum:(" + prefix + "-)?(" + address_regex + ")\\@?([\\w]*)*\\/?([\\w]*)*";
+  var prefix_regex = "(?<prefix>[a-zA-Z]+)-";
+  var address_regex = "(?:0x[\\w]{40})|(?:[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9].[a-zA-Z]{2,})";
+  var full_regex = "^ethereum:(?:" + prefix_regex + ")?(?<address>" + address_regex + ")\\@?(?<chain_id>[\\w]*)*\\/?(?<function_name>[\\w]*)*";
   var exp = new RegExp(full_regex);
   var data = uri.match(exp);
   if (!data) {
@@ -34,16 +21,16 @@ function parse(uri) {
   var parameters_ = qs.parse(parameters);
   var result = {
     scheme: "ethereum",
-    target_address: data.at(2)
+    target_address: data.groups.address
   };
-  if (prefix) {
-    result.prefix = prefix;
+  if (data.groups.prefix) {
+    result.prefix = data.groups.prefix;
   }
   if (data.at(3)) {
-    result.chain_id = data.at(3);
+    result.chain_id = data.groups.chain_id;
   }
   if (data.at(4)) {
-    result.function_name = data.at(4);
+    result.function_name = data.groups.function_name;
   }
   if (Object.keys(parameters_).length > 0) {
     result.parameters = parameters_;

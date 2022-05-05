@@ -1,6 +1,6 @@
 declare type ETHAddress = string;
 declare type ENSName = string;
-declare type ParseResult = {
+declare type EIP681Object = {
     scheme: 'ethereum';
     prefix?: 'pay' | string;
     target_address: ETHAddress | ENSName;
@@ -19,13 +19,13 @@ declare type ParseResult = {
  *
  * @return {object}
  */
-declare function parse(uri: any): ParseResult;
+declare function parse(uri: any): EIP681Object;
 /**
  * Builds a valid Ethereum URI based on the initial parameters
  * @param  {object} data
  *
  * @return {string}
  */
-declare function build({ prefix, target_address, chain_id, function_name, parameters, }: ParseResult): string;
+declare function build({ prefix, target_address, chain_id, function_name, parameters, }: EIP681Object): string;
 
-export { ETHAddress, ENSName, ParseResult, parse, build };
+export { ETHAddress, ENSName, EIP681Object, parse, build };

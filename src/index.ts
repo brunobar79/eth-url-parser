@@ -6,7 +6,7 @@ import qs from 'qs';
 export type ETHAddress = string;
 export type ENSName = string;
 
-export type ParseResult = {
+export type EIP681Object = {
     scheme: 'ethereum';
     prefix?: 'pay' | string;
     target_address: ETHAddress | ENSName;
@@ -26,7 +26,7 @@ export type ParseResult = {
  *
  * @return {object}
  */
-export function parse(uri): ParseResult {
+export function parse(uri): EIP681Object {
     // Verify we are dealing with a string
     if (!uri || typeof uri !== 'string') {
         throw new Error('uri must be a string');
@@ -37,31 +37,12 @@ export function parse(uri): ParseResult {
         throw new Error('Not an Ethereum URI');
     }
 
-    let prefix;
-    let address_regex = '0x[\\w]{40}';
-
-    // Figure out wether we need address of ens matching
-    if (uri.slice(9, 11).toLowerCase() === '0x') {
-        prefix = undefined;
-    } else {
-        const cutOff = uri.indexOf('-', 9);
-
-        if (cutOff === -1) {
-            throw new Error('Missing prefix');
-        }
-
-        prefix = uri.slice(9, cutOff);
-        const rest = uri.slice(Math.max(0, cutOff + 1));
-
-        // Adapting the regex if ENS name detected
-        if (rest.slice(0, 2).toLowerCase() !== '0x') {
-            address_regex =
-                '[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9].[a-zA-Z]{2,}';
-        }
-    }
+    const prefix_regex = '(?<prefix>[a-zA-Z]+)-';
+    const address_regex =
+        '(?:0x[\\w]{40})|(?:[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9].[a-zA-Z]{2,})';
 
     // Full regex for matching
-    const full_regex = `^ethereum:(${prefix}-)?(${address_regex})\\@?([\\w]*)*\\/?([\\w]*)*`;
+    const full_regex = `^ethereum:(?:${prefix_regex})?(?<address>${address_regex})\\@?(?<chain_id>[\\w]*)*\\/?(?<function_name>[\\w]*)*`;
 
     const exp = new RegExp(full_regex);
     const data = uri.match(exp);
@@ -75,21 +56,21 @@ export function parse(uri): ParseResult {
     const parameters = _parameters.length > 1 ? _parameters.at(1) : '';
     const parameters_ = qs.parse(parameters);
 
-    const result: ParseResult = {
+    const result: EIP681Object = {
         scheme: 'ethereum',
-        target_address: data.at(2),
+        target_address: data.groups.address,
     };
 
-    if (prefix) {
-        result.prefix = prefix;
+    if (data.groups.prefix) {
+        result.prefix = data.groups.prefix;
     }
 
     if (data.at(3)) {
-        result.chain_id = data.at(3) as `${number}`;
+        result.chain_id = data.groups.chain_id as `${number}`;
     }
 
     if (data.at(4)) {
-        result.function_name = data.at(4);
+        result.function_name = data.groups.function_name;
     }
 
     if (Object.keys(parameters_).length > 0) {
@@ -130,7 +111,7 @@ export function build({
     chain_id,
     function_name,
     parameters,
-}: ParseResult): string {
+}: EIP681Object): string {
     let query;
 
     if (parameters) {
