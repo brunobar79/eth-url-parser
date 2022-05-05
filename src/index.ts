@@ -174,8 +174,6 @@ export function parse(uri: string): EIP681Object {
 export function build(data: EIP681Object): string {
     let query: string[] = [];
 
-    console.log('args', data.args);
-
     const queryParameters = []
         .concat(
             Object.keys(data.parameters || {}).map((key) => [
