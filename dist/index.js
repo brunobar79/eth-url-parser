@@ -20,7 +20,6 @@ function processValue(variable, value) {
   return value;
 }
 function stringifyValue(variable, value) {
-  var isReserved = EIP681NamedParameters.includes(variable);
   var isNumber = value.match(/^\d+$/);
   if (isNumber) {
     value = new bignumber_js.BigNumber(value, 10).toExponential().replace("+", "").replace(/e0$/, "").replace(/e1$/, "0");
@@ -42,17 +41,11 @@ function parse(uri) {
   var query = data.groups.query ? data.groups.query.slice(1).split("&") : [];
   var result = {
     scheme: "ethereum",
-    target_address: data.groups.address
+    target_address: data.groups.address,
+    prefix: data.groups.prefix,
+    chain_id: data.groups.chain_id,
+    function_name: data.groups.function_name
   };
-  if (data.groups.prefix) {
-    result.prefix = data.groups.prefix;
-  }
-  if (data.at(3)) {
-    result.chain_id = data.groups.chain_id;
-  }
-  if (data.at(4)) {
-    result.function_name = data.groups.function_name;
-  }
   if (query) {
     var _iteratorNormalCompletion = true;
     var _didIteratorError = false;
@@ -89,11 +82,13 @@ function parse(uri) {
       }
     }
   }
+  Object.keys(result).forEach(function (key) {
+    if (result[key] === void 0) delete result[key];
+  });
   return result;
 }
 function build(data) {
   var query = [];
-  console.log("args", data.args);
   var queryParameters = [].concat(Object.keys(data.parameters || {}).map(function (key) {
     return [key, data.parameters[key]];
   }), data.args).filter(function (value) {

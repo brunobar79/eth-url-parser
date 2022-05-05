@@ -76,6 +76,16 @@ function processValue(variable: string, value: string): string {
     return value;
 }
 
+/**
+ * Cleanup any unresolved values in the query parameters
+ *
+ * Converts '2014000000000000000' to '2.014e18'
+ *
+ * @param {string} variable string.
+ * @param {string} value string.
+ *
+ * @return {string}
+ */
 function stringifyValue(variable: string, value: string): string {
     const isNumber = value.match(/^\d+$/); // Should really be the javascript version but ¯\_(ツ)_/¯ for now
 
@@ -120,23 +130,16 @@ export function parse(uri: string): EIP681Object {
         ? data.groups.query.slice(1).split('&')
         : [];
 
+    // Set a result object ready
     const result: EIP681Object = {
         scheme: 'ethereum',
         target_address: data.groups.address,
+        prefix: data.groups.prefix,
+        chain_id: data.groups.chain_id as `${number}`,
+        function_name: data.groups.function_name,
     };
 
-    if (data.groups.prefix) {
-        result.prefix = data.groups.prefix;
-    }
-
-    if (data.at(3)) {
-        result.chain_id = data.groups.chain_id as `${number}`;
-    }
-
-    if (data.at(4)) {
-        result.function_name = data.groups.function_name;
-    }
-
+    // Set all the query magic
     if (query) {
         for (const queryEntry of query) {
             const variable_and_value = queryEntry.split('=');
@@ -160,6 +163,11 @@ export function parse(uri: string): EIP681Object {
 
             result.args.push([variable, value]);
         }
+    }
+
+    // Destroy any undefined keys
+    for (const key of Object.keys(result)) {
+        if (result[key] === undefined) delete result[key];
     }
 
     return result;
