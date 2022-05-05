@@ -8,8 +8,18 @@ export const EIP681NamedParameters = ['value', 'gas', 'gasLimit', 'gasPrice'];
 export type EIP681Object = {
     scheme: 'ethereum';
     prefix?: 'pay' | string;
+    /**
+     * Target Address in the format `0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD` or `doge-to-the-moon.eth`
+     */
     target_address: ETHAddress | ENSName;
+    /**
+     * The function the user is aiming to execute
+     */
     function_name?: string;
+    /**
+     * The chain at which this action should be performed
+     * If undefined assume the current user's chain.
+     */
     chain_id?: `${number}`;
     /**
      * Named variables
@@ -21,6 +31,7 @@ export type EIP681Object = {
     }>;
     /**
      * Function Arguments
+     * These arguments are fed to the function that is to be executed
      */
     args?: [SolodityType, string][];
 };
@@ -86,7 +97,7 @@ function stringifyValue(variable: string, value: string): string {
  *
  * @return {object}
  */
-export function parse(uri): EIP681Object {
+export function parse(uri: string): EIP681Object {
     // Verify we are dealing with a string
     if (!uri || typeof uri !== 'string') {
         throw new Error('uri must be a string');
