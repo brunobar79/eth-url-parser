@@ -5,6 +5,8 @@ import qs from 'qs';
 
 export type ETHAddress = string;
 export type ENSName = string;
+export type SolodityType = string;
+export const EIP681NamedParameters = ['value', 'gas', 'gasLimit', 'gasPrice'];
 
 export type EIP681Object = {
     scheme: 'ethereum';
@@ -12,12 +14,59 @@ export type EIP681Object = {
     target_address: ETHAddress | ENSName;
     function_name?: string;
     chain_id?: `${number}`;
+    /**
+     * Named variables
+     */
     parameters?: Partial<{
         value: `${number}`;
         gas: `${number}`;
         gasPrice: '${number}';
     }>;
+    /**
+     * Function Arguments
+     */
+    arguments?: [SolodityType, string][];
 };
+
+const number_regex =
+    /^(?<major>[+-]?\d+)(?:\.(?<minor>\d+))?(?:[Ee](?<exponent>\d+))?$/;
+const prefix_regex = '(?<prefix>[a-zA-Z]+)-';
+const address_regex =
+    '(?:0x[\\w]{40})|(?:[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9].[a-zA-Z]{2,})';
+
+// Full regex for matching
+const full_regex = `^ethereum:(?:${prefix_regex})?(?<address>${address_regex})\\@?(?<chain_id>[\\w]*)*\\/?(?<function_name>[\\w]*)*(?<query>\\?.*)?`;
+
+/**
+ * Cleanup any unresolved values in the query parameters
+ *
+ * Converts '2.014e18' to '2014000000000000000'
+ *
+ * @param {string} variable string.
+ * @param {string} value string.
+ *
+ * @return {string}
+ */
+function processValue(variable: string, value: string): string {
+    const isReserved = EIP681NamedParameters.includes(variable);
+    const isNumber = number_regex.test(value);
+
+    if (isReserved && !isNumber)
+        throw new Error(variable + ' needs to be a number');
+
+    if (isNumber) {
+        const match = value.match(number_regex).groups;
+
+        value = new BigNumber(
+            `${match.major}${match.minor ? '.' + match.minor : ''}${
+                match.exponent ? 'e+' + match.exponent : ''
+            }`,
+            10
+        ).toString();
+    }
+
+    return value;
+}
 
 /**
  * Parse an Ethereum URI according to ERC-831 and ERC-681
@@ -37,13 +86,6 @@ export function parse(uri): EIP681Object {
         throw new Error('Not an Ethereum URI');
     }
 
-    const prefix_regex = '(?<prefix>[a-zA-Z]+)-';
-    const address_regex =
-        '(?:0x[\\w]{40})|(?:[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9].[a-zA-Z]{2,})';
-
-    // Full regex for matching
-    const full_regex = `^ethereum:(?:${prefix_regex})?(?<address>${address_regex})\\@?(?<chain_id>[\\w]*)*\\/?(?<function_name>[\\w]*)*`;
-
     const exp = new RegExp(full_regex);
     const data = uri.match(exp);
 
@@ -51,10 +93,10 @@ export function parse(uri): EIP681Object {
         throw new Error('Couldn not parse the url');
     }
 
-    const _parameters = uri.split('?');
-
-    const parameters = _parameters.length > 1 ? _parameters.at(1) : '';
-    const parameters_ = qs.parse(parameters);
+    // Parse the query parameters
+    const query = data.groups.query
+        ? data.groups.query.slice(1).split('&')
+        : [];
 
     const result: EIP681Object = {
         scheme: 'ethereum',
@@ -73,26 +115,28 @@ export function parse(uri): EIP681Object {
         result.function_name = data.groups.function_name;
     }
 
-    if (Object.keys(parameters_).length > 0) {
-        result.parameters = parameters_;
-        const amountKey =
-            result.function_name === 'transfer' ? 'uint256' : 'value';
+    if (query) {
+        for (const queryEntry of query) {
+            const variable_and_value = queryEntry.split('=');
 
-        if (result.parameters[amountKey]) {
-            result.parameters[amountKey] = new BigNumber(
-                result.parameters[amountKey],
-                10
-            ).toString();
-
-            if (
-                !Number.isFinite(
-                    Number.parseInt(result.parameters[amountKey])
-                ) ||
-                result.parameters[amountKey] < 0
-            )
+            if (variable_and_value.length != 2)
                 throw new Error(
-                    'Invalid amount ' + result.parameters[amountKey]
+                    'Query Parameter Malformat (' + queryEntry + ')'
                 );
+
+            const variable = variable_and_value.at(0);
+            const value = processValue(variable, variable_and_value.at(1));
+
+            if (EIP681NamedParameters.includes(variable)) {
+                if (!result.parameters) result.parameters = {};
+
+                result.parameters[variable] = value;
+                continue;
+            }
+
+            if (!result.arguments) result.arguments = [];
+
+            result.arguments.push([variable, value]);
         }
     }
 

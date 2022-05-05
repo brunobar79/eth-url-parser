@@ -59,10 +59,10 @@ test('parse', (t) => {
             scheme: 'ethereum',
             target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
             function_name: 'transfer',
-            parameters: {
-                address: '0x12345',
-                uint256: '1',
-            },
+            arguments: [
+                ['address', '0x12345'],
+                ['uint256', '1'],
+            ],
         },
         'Can parse an ERC20 token transfer'
     );
@@ -86,6 +86,23 @@ test('parse', (t) => {
 
     t.deepEqual(
         parse(
+            'ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD?value=-2.014e18&gas=10&gasLimit=21000&gasPrice=50'
+        ),
+        {
+            scheme: 'ethereum',
+            target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
+            parameters: {
+                value: '-2014000000000000000',
+                gas: '10',
+                gasLimit: '21000',
+                gasPrice: '50',
+            },
+        },
+        'Can parse a url with negative value and gas parameters'
+    );
+
+    t.deepEqual(
+        parse(
             'ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD/custom_function?value=2.014e18&gas=10&gasLimit=21000&gasPrice=50'
         ),
         {
@@ -102,23 +119,49 @@ test('parse', (t) => {
         'Can parse a url with function name, value, and gas parameters'
     );
 
-    // t.deepEqual(
-    //     parse(
-    //         'ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD/custom_function?value=2.014e18&gas=10&gasLimit=21000&gasPrice=50&uint8=1&uint256=2'
-    //     ),
-    //     {
-    //         scheme: 'ethereum',
-    //         target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
-    //         function_name: 'custom_function',
-    //         parameters: {
-    //             value: '2014000000000000000',
-    //             gas: '10',
-    //             gasLimit: '21000',
-    //             gasPrice: '50',
-    //         },
-    //     },
-    //     'Can parse a url with function name, value, gas parameters, and function parameters'
-    // );
+    t.deepEqual(
+        parse(
+            'ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD/custom_function?value=2.014e18&gas=10&gasLimit=21000&gasPrice=50&uint8=1&uint256=2'
+        ),
+        {
+            scheme: 'ethereum',
+            target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
+            function_name: 'custom_function',
+            parameters: {
+                value: '2014000000000000000',
+                gas: '10',
+                gasLimit: '21000',
+                gasPrice: '50',
+            },
+            arguments: [
+                ['uint8', '1'],
+                ['uint256', '2'],
+            ],
+        },
+        'Can parse a url with function name, value, gas parameters, and function parameters'
+    );
+
+    t.deepEqual(
+        parse(
+            'ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD/custom_function?value=2.014e18&gas=10&gasLimit=21000&gasPrice=50&uint256=1&uint256=2'
+        ),
+        {
+            scheme: 'ethereum',
+            target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
+            function_name: 'custom_function',
+            parameters: {
+                value: '2014000000000000000',
+                gas: '10',
+                gasLimit: '21000',
+                gasPrice: '50',
+            },
+            arguments: [
+                ['uint256', '1'],
+                ['uint256', '2'],
+            ],
+        },
+        'Can parse a url with function name, value, gas parameters, and overlapping type function parameters'
+    );
 
     t.end();
 });
@@ -178,10 +221,10 @@ test('build', (t) => {
             scheme: 'ethereum',
             target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
             function_name: 'transfer',
-            parameters: {
-                address: '0x12345',
-                uint256: '1',
-            },
+            parameters: [
+                ['address', '0x12345'],
+                ['uint256', '1'],
+            ],
         }),
         'ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD/transfer?address=0x12345&uint256=1',
         'Can build a URL for an ERC20 token transfer'
