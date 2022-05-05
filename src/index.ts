@@ -1,7 +1,4 @@
-'use strict';
-
 import { BigNumber } from 'bignumber.js';
-import qs from 'qs';
 
 export type ETHAddress = string;
 export type ENSName = string;
@@ -25,7 +22,7 @@ export type EIP681Object = {
     /**
      * Function Arguments
      */
-    arguments?: [SolodityType, string][];
+    args?: [SolodityType, string][];
 };
 
 const number_regex =
@@ -63,6 +60,20 @@ function processValue(variable: string, value: string): string {
             }`,
             10
         ).toString();
+    }
+
+    return value;
+}
+
+function stringifyValue(variable: string, value: string): string {
+    const isNumber = value.match(/^\d+$/); // Should really be the javascript version but ¯\_(ツ)_/¯ for now
+
+    if (isNumber) {
+        value = new BigNumber(value, 10)
+            .toExponential()
+            .replace('+', '')
+            .replace(/e0$/, '')
+            .replace(/e1$/, '0');
     }
 
     return value;
@@ -134,9 +145,9 @@ export function parse(uri): EIP681Object {
                 continue;
             }
 
-            if (!result.arguments) result.arguments = [];
+            if (!result.args) result.args = [];
 
-            result.arguments.push([variable, value]);
+            result.args.push([variable, value]);
         }
     }
 
@@ -149,38 +160,31 @@ export function parse(uri): EIP681Object {
  *
  * @return {string}
  */
-export function build({
-    prefix,
-    target_address,
-    chain_id,
-    function_name,
-    parameters,
-}: EIP681Object): string {
-    let query;
+export function build(data: EIP681Object): string {
+    let query: string[] = [];
 
-    if (parameters) {
-        const amountKey = function_name === 'transfer' ? 'uint256' : 'value';
+    console.log('args', data.args);
 
-        if (parameters[amountKey]) {
-            // This is weird. Scientific notation in JS is usually 2.014e+18
-            // but the EIP 681 shows no "+" sign ¯\_(ツ)_/¯
-            // source: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-681.md#semantics
-            parameters[amountKey] = new BigNumber(parameters[amountKey], 10)
-                .toExponential()
-                .replace('+', '')
-                .replace('e0', '');
+    const queryParameters = []
+        .concat(
+            Object.keys(data.parameters || {}).map((key) => [
+                key,
+                data.parameters[key],
+            ]),
+            data.args
+        )
+        .filter((value) => !!value);
 
-            if (
-                !Number.isFinite(Number.parseInt(parameters[amountKey])) ||
-                parameters[amountKey] < 0
-            )
-                throw new Error('Invalid amount');
-        }
+    query = queryParameters.map(
+        (data) =>
+            `${data.at(0)}=${encodeURIComponent(
+                stringifyValue(data.at(0), data.at(1))
+            )}`
+    );
 
-        query = qs.stringify(parameters);
-    }
-
-    return `ethereum:${prefix ? prefix + '-' : ''}${target_address}${
-        chain_id ? '@' + chain_id : ''
-    }${function_name ? '/' + function_name : ''}${query ? '?' + query : ''}`;
+    return `ethereum:${data.prefix ? data.prefix + '-' : ''}${
+        data.target_address
+    }${data.chain_id ? '@' + data.chain_id : ''}${
+        data.function_name ? '/' + data.function_name : ''
+    }${query.length > 0 ? '?' + query.join('&') : ''}`;
 }

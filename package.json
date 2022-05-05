@@ -30,7 +30,7 @@
     "devDependencies": {
         "@types/qs": "^6.9.7",
         "@typescript-eslint/parser": "^5.22.0",
-        "babel-core": "^6.26.0",
+        "babel-core": "^6.26.3",
         "babel-eslint": "^8.2.1",
         "babel-plugin-external-helpers": "^6.22.0",
         "babel-preset-env": "^1.6.0",

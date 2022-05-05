@@ -19,7 +19,7 @@ declare type EIP681Object = {
     /**
      * Function Arguments
      */
-    arguments?: [SolodityType, string][];
+    args?: [SolodityType, string][];
 };
 /**
  * Parse an Ethereum URI according to ERC-831 and ERC-681
@@ -35,6 +35,6 @@ declare function parse(uri: any): EIP681Object;
  *
  * @return {string}
  */
-declare function build({ prefix, target_address, chain_id, function_name, parameters, }: EIP681Object): string;
+declare function build(data: EIP681Object): string;
 
 export { ETHAddress, ENSName, SolodityType, EIP681NamedParameters, EIP681Object, parse, build };

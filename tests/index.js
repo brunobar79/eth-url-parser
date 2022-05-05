@@ -59,7 +59,7 @@ test('parse', (t) => {
             scheme: 'ethereum',
             target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
             function_name: 'transfer',
-            arguments: [
+            args: [
                 ['address', '0x12345'],
                 ['uint256', '1'],
             ],
@@ -133,7 +133,7 @@ test('parse', (t) => {
                 gasLimit: '21000',
                 gasPrice: '50',
             },
-            arguments: [
+            args: [
                 ['uint8', '1'],
                 ['uint256', '2'],
             ],
@@ -155,7 +155,7 @@ test('parse', (t) => {
                 gasLimit: '21000',
                 gasPrice: '50',
             },
-            arguments: [
+            args: [
                 ['uint256', '1'],
                 ['uint256', '2'],
             ],
@@ -221,7 +221,7 @@ test('build', (t) => {
             scheme: 'ethereum',
             target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
             function_name: 'transfer',
-            parameters: [
+            args: [
                 ['address', '0x12345'],
                 ['uint256', '1'],
             ],
@@ -241,7 +241,7 @@ test('build', (t) => {
                 gasPrice: '50',
             },
         }),
-        'ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD?value=2.014e18&gas=10&gasLimit=21000&gasPrice=50',
+        'ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD?value=2.014e18&gas=10&gasLimit=2.1e4&gasPrice=50',
         'Can build a url with value and gas parameters'
     );
 

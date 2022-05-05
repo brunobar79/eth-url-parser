@@ -2,10 +2,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
 var bignumber_js = require('bignumber.js');
-var qs = _interopDefault(require('qs'));
 
 var EIP681NamedParameters = ["value", "gas", "gasLimit", "gasPrice"];
 var number_regex = /^(?<major>[+-]?\d+)(?:\.(?<minor>\d+))?(?:[Ee](?<exponent>\d+))?$/;
@@ -19,6 +16,14 @@ function processValue(variable, value) {
   if (isNumber) {
     var match = value.match(number_regex).groups;
     value = new bignumber_js.BigNumber("" + match.major + (match.minor ? "." + match.minor : "") + (match.exponent ? "e+" + match.exponent : ""), 10).toString();
+  }
+  return value;
+}
+function stringifyValue(variable, value) {
+  var isReserved = EIP681NamedParameters.includes(variable);
+  var isNumber = value.match(/^\d+$/);
+  if (isNumber) {
+    value = new bignumber_js.BigNumber(value, 10).toExponential().replace("+", "").replace(/e0$/, "").replace(/e1$/, "0");
   }
   return value;
 }
@@ -66,8 +71,8 @@ function parse(uri) {
           result.parameters[variable] = value;
           continue;
         }
-        if (!result.arguments) result.arguments = [];
-        result.arguments.push([variable, value]);
+        if (!result.args) result.args = [];
+        result.args.push([variable, value]);
       }
     } catch (err) {
       _didIteratorError = true;
@@ -86,23 +91,18 @@ function parse(uri) {
   }
   return result;
 }
-function build(_ref) {
-  var prefix = _ref.prefix,
-      target_address = _ref.target_address,
-      chain_id = _ref.chain_id,
-      function_name = _ref.function_name,
-      parameters = _ref.parameters;
-
-  var query = void 0;
-  if (parameters) {
-    var amountKey = function_name === "transfer" ? "uint256" : "value";
-    if (parameters[amountKey]) {
-      parameters[amountKey] = new bignumber_js.BigNumber(parameters[amountKey], 10).toExponential().replace("+", "").replace("e0", "");
-      if (!Number.isFinite(Number.parseInt(parameters[amountKey])) || parameters[amountKey] < 0) throw new Error("Invalid amount");
-    }
-    query = qs.stringify(parameters);
-  }
-  return "ethereum:" + (prefix ? prefix + "-" : "") + target_address + (chain_id ? "@" + chain_id : "") + (function_name ? "/" + function_name : "") + (query ? "?" + query : "");
+function build(data) {
+  var query = [];
+  console.log("args", data.args);
+  var queryParameters = [].concat(Object.keys(data.parameters || {}).map(function (key) {
+    return [key, data.parameters[key]];
+  }), data.args).filter(function (value) {
+    return !!value;
+  });
+  query = queryParameters.map(function (data2) {
+    return data2.at(0) + "=" + encodeURIComponent(stringifyValue(data2.at(0), data2.at(1)));
+  });
+  return "ethereum:" + (data.prefix ? data.prefix + "-" : "") + data.target_address + (data.chain_id ? "@" + data.chain_id : "") + (data.function_name ? "/" + data.function_name : "") + (query.length > 0 ? "?" + query.join("&") : "");
 }
 
 exports.EIP681NamedParameters = EIP681NamedParameters;
