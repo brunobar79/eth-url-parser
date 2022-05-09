@@ -53,8 +53,7 @@
         "dist"
     ],
     "dependencies": {
-        "bignumber.js": "^7.2.1",
-        "qs": "^6.5.2"
+        "bignumber.js": "^7.2.1"
     },
     "resolutions": {
         "**/trim": "0.0.3"
