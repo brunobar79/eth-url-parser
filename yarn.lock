@@ -1450,7 +1450,7 @@ eslint-plugin-jest@^26.1.1:
   dependencies:
     "@typescript-eslint/utils" "^5.10.0"
 
-eslint-plugin-lvksh@^1.3.0:
+eslint-plugin-lvksh@1.3.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/eslint-plugin-lvksh/-/eslint-plugin-lvksh-1.3.0.tgz#c5e5169bc3346af82d9cb2540ef967a679dc25da"
   integrity sha512-7ra9FPa1JA+mCvtbD0pBNeZVP+C2wNd5DDrGLXOsTvuI9BTiDvZIr7o8cxFL8G6SPc8JryHo3JIvkrJRYPJj1Q==

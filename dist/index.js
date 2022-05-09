@@ -41,8 +41,8 @@ function parse(uri) {
   var query = data.groups.query ? data.groups.query.slice(1).split("&") : [];
   var result = {
     scheme: "ethereum",
-    target_address: data.groups.address,
     prefix: data.groups.prefix,
+    target_address: data.groups.address,
     chain_id: data.groups.chain_id,
     function_name: data.groups.function_name
   };

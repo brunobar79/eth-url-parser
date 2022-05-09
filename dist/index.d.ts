@@ -10,21 +10,21 @@ declare type EIP681Object = {
      */
     target_address: ETHAddress | ENSName;
     /**
-     * The function the user is aiming to execute
-     */
-    function_name?: string;
-    /**
      * The chain at which this action should be performed
      * If undefined assume the current user's chain.
      */
     chain_id?: `${number}`;
+    /**
+     * The function the user is aiming to execute
+     */
+    function_name?: string;
     /**
      * Named variables
      */
     parameters?: Partial<{
         value: `${number}`;
         gas: `${number}`;
-        gasPrice: '${number}';
+        gasPrice: `${number}`;
     }>;
     /**
      * Function Arguments
