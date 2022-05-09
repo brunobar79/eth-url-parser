@@ -1,6 +1,6 @@
 declare type ETHAddress = string;
 declare type ENSName = string;
-declare type SolodityType = string;
+declare type SolidityType = string;
 declare const EIP681NamedParameters: string[];
 declare type EIP681Object = {
     scheme: 'ethereum';
@@ -30,7 +30,7 @@ declare type EIP681Object = {
      * Function Arguments
      * These arguments are fed to the function that is to be executed
      */
-    args?: [SolodityType, string][];
+    args?: [SolidityType, string][];
 };
 /**
  * Parse an Ethereum URI according to ERC-831 and ERC-681
@@ -48,4 +48,4 @@ declare function parse(uri: string): EIP681Object;
  */
 declare function build(data: EIP681Object): string;
 
-export { ETHAddress, ENSName, SolodityType, EIP681NamedParameters, EIP681Object, parse, build };
+export { ETHAddress, ENSName, SolidityType, EIP681NamedParameters, EIP681Object, parse, build };

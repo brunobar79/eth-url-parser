@@ -5,7 +5,7 @@ import esbuild from 'rollup-plugin-esbuild';
 import resolve from 'rollup-plugin-node-resolve';
 import external from 'rollup-plugin-peer-deps-external';
 
-import package_ from './package.json';
+import pkg from './package.json';
 
 const bundle = (config) => ({
     ...config,
@@ -17,11 +17,11 @@ export default [
     bundle({
         output: [
             {
-                file: package_.main,
+                file: pkg.main,
                 format: 'cjs',
             },
             {
-                file: package_.module,
+                file: pkg.module,
                 format: 'es',
             },
         ],

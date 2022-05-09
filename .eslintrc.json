@@ -16,6 +16,7 @@
         "node": true
     },
     "rules": {
-        "sonarjs/cognitive-complexity": "off"
+        "sonarjs/cognitive-complexity": "off",
+        "unicorn/prevent-abbreviations": "off"
     }
 }

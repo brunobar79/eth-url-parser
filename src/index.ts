@@ -2,7 +2,7 @@ import { BigNumber } from 'bignumber.js';
 
 export type ETHAddress = string;
 export type ENSName = string;
-export type SolodityType = string;
+export type SolidityType = string;
 export const EIP681NamedParameters = ['value', 'gas', 'gasLimit', 'gasPrice'];
 
 export type EIP681Object = {
@@ -33,7 +33,7 @@ export type EIP681Object = {
      * Function Arguments
      * These arguments are fed to the function that is to be executed
      */
-    args?: [SolodityType, string][];
+    args?: [SolidityType, string][];
 };
 
 const number_regex =
