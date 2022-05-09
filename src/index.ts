@@ -87,7 +87,7 @@ function processValue(variable: string, value: string): string {
  * @return {string}
  */
 function stringifyValue(variable: string, value: string): string {
-    const isNumber = value.match(/^\d+$/); // Should really be the javascript version but ¯\_(ツ)_/¯ for now
+    const isNumber = !Number.isNaN(value) && !value.toString().startsWith('0x'); // Should really be the javascript version but ¯\_(ツ)_/¯ for now
 
     if (isNumber) {
         value = new BigNumber(value, 10)

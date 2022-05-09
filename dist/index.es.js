@@ -16,7 +16,7 @@ function processValue(variable, value) {
   return value;
 }
 function stringifyValue(variable, value) {
-  var isNumber = value.match(/^\d+$/);
+  var isNumber = !Number.isNaN(value) && !value.toString().startsWith("0x");
   if (isNumber) {
     value = new BigNumber(value, 10).toExponential().replace("+", "").replace(/e0$/, "").replace(/e1$/, "0");
   }
