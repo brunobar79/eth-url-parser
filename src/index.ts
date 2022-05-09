@@ -13,21 +13,21 @@ export type EIP681Object = {
      */
     target_address: ETHAddress | ENSName;
     /**
-     * The function the user is aiming to execute
-     */
-    function_name?: string;
-    /**
      * The chain at which this action should be performed
      * If undefined assume the current user's chain.
      */
     chain_id?: `${number}`;
+    /**
+     * The function the user is aiming to execute
+     */
+    function_name?: string;
     /**
      * Named variables
      */
     parameters?: Partial<{
         value: `${number}`;
         gas: `${number}`;
-        gasPrice: '${number}';
+        gasPrice: `${number}`;
     }>;
     /**
      * Function Arguments
@@ -133,8 +133,8 @@ export function parse(uri: string): EIP681Object {
     // Set a result object ready
     const result: EIP681Object = {
         scheme: 'ethereum',
-        target_address: data.groups.address,
         prefix: data.groups.prefix,
+        target_address: data.groups.address,
         chain_id: data.groups.chain_id as `${number}`,
         function_name: data.groups.function_name,
     };
