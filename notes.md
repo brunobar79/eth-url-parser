@@ -14,3 +14,7 @@ Should result in some kind of typescript typed object
 }
 
 ```
+
+WHAT IF YOUR ENS NAME STARTS WITH `pay-` or `network-`
+
+2400 is not URI ENCODED, IT SHOULD BE

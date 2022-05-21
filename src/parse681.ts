@@ -1,10 +1,10 @@
 import BigNumber from 'bignumber.js';
 
-import { EIP681Object, REGEX } from '.';
+import { EIP681Object, ETHParserFunction, REGEX } from '.';
 
 export const EIP681NamedParameters = ['value', 'gas', 'gasLimit', 'gasPrice'];
 
-export const parse681 = (uri: string) => {
+export const parse681: ETHParserFunction = (uri) => {
     const sixeightyone = new RegExp(REGEX.regex_681);
     const data = uri.match(sixeightyone);
 

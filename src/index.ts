@@ -90,18 +90,20 @@ const number_regex =
 const prefix_regex = '(?<prefix>[a-zA-Z]+)-';
 const address_regex =
     '(?:0x[\\w]{40})|(?:[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9].[a-zA-Z]{2,})';
+const txaddress_regex = '0x[\\w]{64}';
 
 // Full regex for matching
 const regex_generic = '${ethereum_regex}(?:${prefix_regex})'; // Check if it matches eip-831 aka "An ethereum URL"
-const regex_681 = `${ethereum_regex}(?:${prefix_regex})?(?<address>${address_regex})\\@?(?<chain_id>[\\w]*)*\\/?(?<function_name>[\\w]*)*(?<query>\\?.*)?`;
-const regex_2400 = `${ethereum_regex}(?:${prefix_regex})?(?<address>${address_regex})\\@?(?<chain_id>[\\w]*)*\\/?(?<function_name>[\\w]*)*(?<query>\\?.*)?`;
-const regex_5094 = `${ethereum_regex}(?:${prefix_regex})?(?<address>${address_regex})\\@?(?<chain_id>[\\w]*)*\\/?(?<function_name>[\\w]*)*(?<query>\\?.*)?`;
+const regex_681 = `${ethereum_regex}(?:pay-)?(?<address>${address_regex})\\@?(?<chain_id>[\\w]*)*\\/?(?<function_name>[\\w]*)*(?<query>\\?.*)?`;
+const regex_2400 = `${ethereum_regex}tx-(?<address>${txaddress_regex})\\@?(?<chain_id>[\\w]*)*\\/?(?<function_name>[\\w]*)*(?<query>\\?.*)?`;
+const regex_5094 = `${ethereum_regex}network-add\\@?(?<chain_id>[\\w]*)*\\/?(?<query>\\?.*)?`;
 
 export const REGEX = {
     ethereum_regex,
     number_regex,
     prefix_regex,
     address_regex,
+    txaddress_regex,
     regex_generic,
     regex_681,
     regex_2400,
@@ -132,11 +134,8 @@ function stringifyValue(variable: string, value: string): string {
     return value;
 }
 
-const supported_specs: ((_uri: string) => ETHObject | undefined)[] = [
-    parse681,
-    parse2400,
-    parse5094,
-];
+export type ETHParserFunction = (_uri: string) => ETHObject | undefined;
+const supported_specs: ETHParserFunction[] = [parse2400, parse5094, parse681];
 
 /**
  * Parse an Ethereum URI according to ERC-831 and ERC-681
@@ -145,7 +144,7 @@ const supported_specs: ((_uri: string) => ETHObject | undefined)[] = [
  *
  * @return {object}
  */
-export function parse(uri: string): ETHObject {
+export const parse: ETHParserFunction = (uri) => {
     // Verify we are dealing with a string
     if (!uri || typeof uri !== 'string') {
         throw new Error('uri must be a string');
@@ -179,7 +178,7 @@ export function parse(uri: string): ETHObject {
     // }
 
     throw new Error('Unknown Ethereum Standard');
-}
+};
 
 /**
  * Builds a valid Ethereum URI based on the initial parameters

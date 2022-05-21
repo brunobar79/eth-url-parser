@@ -78,11 +78,13 @@ declare const REGEX: {
     number_regex: RegExp;
     prefix_regex: string;
     address_regex: string;
+    txaddress_regex: string;
     regex_generic: string;
     regex_681: string;
     regex_2400: string;
     regex_5094: string;
 };
+declare type ETHParserFunction = (_uri: string) => ETHObject | undefined;
 /**
  * Parse an Ethereum URI according to ERC-831 and ERC-681
  *
@@ -90,7 +92,7 @@ declare const REGEX: {
  *
  * @return {object}
  */
-declare function parse(uri: string): ETHObject;
+declare const parse: ETHParserFunction;
 /**
  * Builds a valid Ethereum URI based on the initial parameters
  * @param  {object} data
@@ -99,4 +101,4 @@ declare function parse(uri: string): ETHObject;
  */
 declare function build(data: EIP681Object): string;
 
-export { ETHAddress, ENSName, SolidityType, EIP681Object, EIP2400Object, EIP5094Object, ETHObject, REGEX, parse, build };
+export { ETHAddress, ENSName, SolidityType, EIP681Object, EIP2400Object, EIP5094Object, ETHObject, REGEX, ETHParserFunction, parse, build };

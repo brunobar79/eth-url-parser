@@ -1,6 +1,6 @@
-import { EIP5094Object, REGEX } from '.';
+import { EIP5094Object, ETHParserFunction, REGEX } from '.';
 
-export const parse5094 = (uri: string) => {
+export const parse5094: ETHParserFunction = (uri) => {
     const sixeightyone = new RegExp(REGEX.regex_5094);
     const data = uri.match(sixeightyone);
 

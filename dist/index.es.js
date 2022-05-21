@@ -88,15 +88,76 @@ function processEIP681Value(variable, value) {
   return value;
 }
 
+var EIP2400NamedParameters = ["method", "events"];
 var parse2400 = function parse2400(uri) {
   var sixeightyone = new RegExp(REGEX.regex_2400);
   var data = uri.match(sixeightyone);
   if (!data) return;
+  var query = data.groups.query ? data.groups.query.slice(1).split("&") : [];
   var result = {
     scheme: "ethereum",
     prefix: "tx",
-    transaction_hash: ""
+    transaction_hash: data.groups.address,
+    chain_id: data.groups.chain_id
   };
+  if (query) {
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+      for (var _iterator = query[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        var queryEntry = _step.value;
+
+        var variable_and_value = queryEntry.split("=");
+        if (variable_and_value.length != 2) throw new Error("Query Parameter Malformat (" + queryEntry + ")");
+        var variable = variable_and_value.at(0);
+        var value = variable_and_value.at(1);
+        if (EIP2400NamedParameters.includes(variable)) {
+          if (!result.parameters) result.parameters = {};
+          result.parameters[variable] = decodeURIComponent(value);
+        }
+      }
+    } catch (err) {
+      _didIteratorError = true;
+      _iteratorError = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion && _iterator.return) {
+          _iterator.return();
+        }
+      } finally {
+        if (_didIteratorError) {
+          throw _iteratorError;
+        }
+      }
+    }
+  }
+  var _iteratorNormalCompletion2 = true;
+  var _didIteratorError2 = false;
+  var _iteratorError2 = undefined;
+
+  try {
+    for (var _iterator2 = Object.keys(result)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+      var key = _step2.value;
+
+      if (result[key] === void 0) delete result[key];
+    }
+  } catch (err) {
+    _didIteratorError2 = true;
+    _iteratorError2 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion2 && _iterator2.return) {
+        _iterator2.return();
+      }
+    } finally {
+      if (_didIteratorError2) {
+        throw _iteratorError2;
+      }
+    }
+  }
+
   return result;
 };
 
@@ -119,15 +180,17 @@ var ethereum_regex = "^ethereum:";
 var number_regex = /^(?<major>[+-]?\d+)(?:\.(?<minor>\d+))?(?:[Ee](?<exponent>\d+))?$/;
 var prefix_regex = "(?<prefix>[a-zA-Z]+)-";
 var address_regex = "(?:0x[\\w]{40})|(?:[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9].[a-zA-Z]{2,})";
+var txaddress_regex = "0x[\\w]{64}";
 var regex_generic = "${ethereum_regex}(?:${prefix_regex})";
-var regex_681 = ethereum_regex + "(?:" + prefix_regex + ")?(?<address>" + address_regex + ")\\@?(?<chain_id>[\\w]*)*\\/?(?<function_name>[\\w]*)*(?<query>\\?.*)?";
-var regex_2400 = ethereum_regex + "(?:" + prefix_regex + ")?(?<address>" + address_regex + ")\\@?(?<chain_id>[\\w]*)*\\/?(?<function_name>[\\w]*)*(?<query>\\?.*)?";
-var regex_5094 = ethereum_regex + "(?:" + prefix_regex + ")?(?<address>" + address_regex + ")\\@?(?<chain_id>[\\w]*)*\\/?(?<function_name>[\\w]*)*(?<query>\\?.*)?";
+var regex_681 = ethereum_regex + "(?:pay-)?(?<address>" + address_regex + ")\\@?(?<chain_id>[\\w]*)*\\/?(?<function_name>[\\w]*)*(?<query>\\?.*)?";
+var regex_2400 = ethereum_regex + "tx-(?<address>" + txaddress_regex + ")\\@?(?<chain_id>[\\w]*)*\\/?(?<function_name>[\\w]*)*(?<query>\\?.*)?";
+var regex_5094 = ethereum_regex + "network-add\\@?(?<chain_id>[\\w]*)*\\/?(?<query>\\?.*)?";
 var REGEX = {
   ethereum_regex: ethereum_regex,
   number_regex: number_regex,
   prefix_regex: prefix_regex,
   address_regex: address_regex,
+  txaddress_regex: txaddress_regex,
   regex_generic: regex_generic,
   regex_681: regex_681,
   regex_2400: regex_2400,
@@ -140,8 +203,8 @@ function stringifyValue(variable, value) {
   }
   return value;
 }
-var supported_specs = [parse681, parse2400, parse5094];
-function parse(uri) {
+var supported_specs = [parse2400, parse5094, parse681];
+var parse = function parse(uri) {
   if (!uri || typeof uri !== "string") {
     throw new Error("uri must be a string");
   }
@@ -175,7 +238,7 @@ function parse(uri) {
   }
 
   throw new Error("Unknown Ethereum Standard");
-}
+};
 function build(data) {
   var query = [];
   var queryParameters = [].concat(Object.keys(data.parameters || {}).map(function (key) {
