@@ -66,19 +66,19 @@ export type EIP5094Object = {
     /**
      * Chain id of the chain that ought to be added to the users wallet.
      */
-    chain_id?: `${number}`;
+    chain_id: `${number}`;
     /**
      * Named variables
      */
     parameters: {
-        rpc_url: string | string[];
+        rpc_url: string[];
         chain_name: string;
     } & Partial<{
         name: string;
         symbol: string;
         decimals: number;
-        explorer_url: string | string[];
-        icon_url: string | string[];
+        explorer_url: string[];
+        icon_url: string[];
     }>;
 };
 

@@ -112,10 +112,10 @@ var parse2400 = function parse2400(uri) {
         var variable_and_value = queryEntry.split("=");
         if (variable_and_value.length != 2) throw new Error("Query Parameter Malformat (" + queryEntry + ")");
         var variable = variable_and_value.at(0);
-        var value = variable_and_value.at(1);
+        var value = decodeURIComponent(variable_and_value.at(1));
         if (EIP2400NamedParameters.includes(variable)) {
           if (!result.parameters) result.parameters = {};
-          result.parameters[variable] = decodeURIComponent(value);
+          result.parameters[variable] = value;
         }
       }
     } catch (err) {
@@ -161,18 +161,90 @@ var parse2400 = function parse2400(uri) {
   return result;
 };
 
+var EIP5094NamedParameters = ["chain_name", "name", "symbol", "decimals"];
+var EIP5094NamedListParameters = ["rpc_url", "explorer_url", "icon_url"];
 var parse5094 = function parse5094(uri) {
   var sixeightyone = new RegExp(REGEX.regex_5094);
   var data = uri.match(sixeightyone);
   if (!data) return;
+  var query = data.groups.query ? data.groups.query.slice(1).split("&") : [];
   var result = {
     scheme: "ethereum",
     prefix: "networkadd",
+    chain_id: data.groups.chain_id,
     parameters: {
-      chain_name: "",
-      rpc_url: ""
+      chain_name: void 0,
+      rpc_url: void 0
     }
   };
+  if (query) {
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+      for (var _iterator = query[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        var queryEntry = _step.value;
+
+        var variable_and_value = queryEntry.split("=");
+        if (variable_and_value.length != 2) throw new Error("Query Parameter Malformat (" + queryEntry + ")");
+        var variable = variable_and_value.at(0);
+        var value = decodeURIComponent(variable_and_value.at(1));
+        if (EIP5094NamedParameters.includes(variable)) {
+          if (variable == "decimals") {
+            result.parameters[variable] = Number.parseInt(value);
+            continue;
+          }
+          result.parameters[variable] = value;
+          continue;
+        }
+        if (EIP5094NamedListParameters.includes(variable)) {
+          if (!result.parameters[variable]) result.parameters[variable] = [];
+          result.parameters[variable].push(value);
+        }
+      }
+    } catch (err) {
+      _didIteratorError = true;
+      _iteratorError = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion && _iterator.return) {
+          _iterator.return();
+        }
+      } finally {
+        if (_didIteratorError) {
+          throw _iteratorError;
+        }
+      }
+    }
+  }
+  if (!result.parameters.chain_name) throw new Error("EIP-5094: Missing chain_name");
+  if (!result.parameters.rpc_url) throw new Error("EIP-5094: Missing rpc_url");
+  var _iteratorNormalCompletion2 = true;
+  var _didIteratorError2 = false;
+  var _iteratorError2 = undefined;
+
+  try {
+    for (var _iterator2 = Object.keys(result)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+      var key = _step2.value;
+
+      if (result[key] === void 0) delete result[key];
+    }
+  } catch (err) {
+    _didIteratorError2 = true;
+    _iteratorError2 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion2 && _iterator2.return) {
+        _iterator2.return();
+      }
+    } finally {
+      if (_didIteratorError2) {
+        throw _iteratorError2;
+      }
+    }
+  }
+
   return result;
 };
 

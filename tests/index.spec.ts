@@ -2,14 +2,18 @@ import * as test from 'tape';
 
 import { parse681 } from '../src/parse681';
 import { parse2400 } from '../src/parse2400';
+import { parse5094 } from '../src/parse5094';
 import { testParse681 } from './parse681.spec';
 import { testParse2400 } from './parse2400.spec';
+import { testParse5094 } from './parse5094.spec';
 const { parse, build } = require('../dist');
 
 test('parse681 from subfunction', testParse681(parse681));
 test('parse681 from main', testParse681(parse));
 test('parse2400 from subfunction', testParse2400(parse2400));
 test('parse2400 from main', testParse2400(parse));
+test('parse5094 from subfunction', testParse5094(parse5094));
+test('parse5094 from main', testParse2400(parse));
 
 test('build', (t) => {
     t.equals(

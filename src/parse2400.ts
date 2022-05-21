@@ -32,12 +32,12 @@ export const parse2400: ETHParserFunction = (uri) => {
                 );
 
             const variable = variable_and_value.at(0);
-            const value = variable_and_value.at(1);
+            const value = decodeURIComponent(variable_and_value.at(1));
 
             if (EIP2400NamedParameters.includes(variable)) {
                 if (!result.parameters) result.parameters = {};
 
-                result.parameters[variable] = decodeURIComponent(value);
+                result.parameters[variable] = value;
             }
         }
     }
