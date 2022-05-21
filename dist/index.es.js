@@ -1,43 +1,14 @@
-import { BigNumber } from 'bignumber.js';
+import BigNumber, { BigNumber as BigNumber$1 } from 'bignumber.js';
 
 var EIP681NamedParameters = ["value", "gas", "gasLimit", "gasPrice"];
-var number_regex = /^(?<major>[+-]?\d+)(?:\.(?<minor>\d+))?(?:[Ee](?<exponent>\d+))?$/;
-var prefix_regex = "(?<prefix>[a-zA-Z]+)-";
-var address_regex = "(?:0x[\\w]{40})|(?:[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9].[a-zA-Z]{2,})";
-var full_regex = "^ethereum:(?:" + prefix_regex + ")?(?<address>" + address_regex + ")\\@?(?<chain_id>[\\w]*)*\\/?(?<function_name>[\\w]*)*(?<query>\\?.*)?";
-function processValue(variable, value) {
-  var isReserved = EIP681NamedParameters.includes(variable);
-  var isNumber = number_regex.test(value);
-  if (isReserved && !isNumber) throw new Error(variable + " needs to be a number");
-  if (isNumber) {
-    var match = value.match(number_regex).groups;
-    value = new BigNumber("" + match.major + (match.minor ? "." + match.minor : "") + (match.exponent ? "e+" + match.exponent : ""), 10).toString();
-  }
-  return value;
-}
-function stringifyValue(variable, value) {
-  var isNumber = !Number.isNaN(value) && !value.toString().startsWith("0x");
-  if (isNumber) {
-    value = new BigNumber(value, 10).toExponential().replace("+", "").replace(/e0$/, "").replace(/e1$/, "0");
-  }
-  return value;
-}
-function parse(uri) {
-  if (!uri || typeof uri !== "string") {
-    throw new Error("uri must be a string");
-  }
-  if (uri.slice(0, 9) !== "ethereum:") {
-    throw new Error("Not an Ethereum URI");
-  }
-  var exp = new RegExp(full_regex);
-  var data = uri.match(exp);
-  if (!data) {
-    throw new Error("Couldn not parse the url");
-  }
+var parse681 = function parse681(uri) {
+  var sixeightyone = new RegExp(REGEX.regex_681);
+  var data = uri.match(sixeightyone);
+  if (!data) return;
   var query = data.groups.query ? data.groups.query.slice(1).split("&") : [];
   var result = {
     scheme: "ethereum",
-    prefix: data.groups.prefix,
+    prefix: "pay",
     target_address: data.groups.address,
     chain_id: data.groups.chain_id,
     function_name: data.groups.function_name
@@ -54,7 +25,7 @@ function parse(uri) {
         var variable_and_value = queryEntry.split("=");
         if (variable_and_value.length != 2) throw new Error("Query Parameter Malformat (" + queryEntry + ")");
         var variable = variable_and_value.at(0);
-        var value = processValue(variable, variable_and_value.at(1));
+        var value = processEIP681Value(variable, variable_and_value.at(1));
         if (EIP681NamedParameters.includes(variable)) {
           if (!result.parameters) result.parameters = {};
           result.parameters[variable] = value;
@@ -105,6 +76,105 @@ function parse(uri) {
   }
 
   return result;
+};
+function processEIP681Value(variable, value) {
+  var isReserved = EIP681NamedParameters.includes(variable);
+  var isNumber = REGEX.number_regex.test(value);
+  if (isReserved && !isNumber) throw new Error(variable + " needs to be a number");
+  if (isNumber) {
+    var match = value.match(REGEX.number_regex).groups;
+    value = new BigNumber("" + match.major + (match.minor ? "." + match.minor : "") + (match.exponent ? "e+" + match.exponent : ""), 10).toString();
+  }
+  return value;
+}
+
+var parse2400 = function parse2400(uri) {
+  var sixeightyone = new RegExp(REGEX.regex_2400);
+  var data = uri.match(sixeightyone);
+  if (!data) return;
+  var result = {
+    scheme: "ethereum",
+    prefix: "tx",
+    transaction_hash: ""
+  };
+  return result;
+};
+
+var parse5094 = function parse5094(uri) {
+  var sixeightyone = new RegExp(REGEX.regex_5094);
+  var data = uri.match(sixeightyone);
+  if (!data) return;
+  var result = {
+    scheme: "ethereum",
+    prefix: "networkadd",
+    parameters: {
+      chain_name: "",
+      rpc_url: ""
+    }
+  };
+  return result;
+};
+
+var ethereum_regex = "^ethereum:";
+var number_regex = /^(?<major>[+-]?\d+)(?:\.(?<minor>\d+))?(?:[Ee](?<exponent>\d+))?$/;
+var prefix_regex = "(?<prefix>[a-zA-Z]+)-";
+var address_regex = "(?:0x[\\w]{40})|(?:[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9].[a-zA-Z]{2,})";
+var regex_generic = "${ethereum_regex}(?:${prefix_regex})";
+var regex_681 = ethereum_regex + "(?:" + prefix_regex + ")?(?<address>" + address_regex + ")\\@?(?<chain_id>[\\w]*)*\\/?(?<function_name>[\\w]*)*(?<query>\\?.*)?";
+var regex_2400 = ethereum_regex + "(?:" + prefix_regex + ")?(?<address>" + address_regex + ")\\@?(?<chain_id>[\\w]*)*\\/?(?<function_name>[\\w]*)*(?<query>\\?.*)?";
+var regex_5094 = ethereum_regex + "(?:" + prefix_regex + ")?(?<address>" + address_regex + ")\\@?(?<chain_id>[\\w]*)*\\/?(?<function_name>[\\w]*)*(?<query>\\?.*)?";
+var REGEX = {
+  ethereum_regex: ethereum_regex,
+  number_regex: number_regex,
+  prefix_regex: prefix_regex,
+  address_regex: address_regex,
+  regex_generic: regex_generic,
+  regex_681: regex_681,
+  regex_2400: regex_2400,
+  regex_5094: regex_5094
+};
+function stringifyValue(variable, value) {
+  var isNumber = !Number.isNaN(value) && !value.toString().startsWith("0x");
+  if (isNumber) {
+    value = new BigNumber$1(value, 10).toExponential().replace("+", "").replace(/e0$/, "").replace(/e1$/, "0");
+  }
+  return value;
+}
+var supported_specs = [parse681, parse2400, parse5094];
+function parse(uri) {
+  if (!uri || typeof uri !== "string") {
+    throw new Error("uri must be a string");
+  }
+  if (uri.slice(0, 9) !== "ethereum:") {
+    throw new Error("Not an Ethereum URI");
+  }
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = supported_specs[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var parseFunc = _step.value;
+
+      var result = parseFunc(uri);
+      if (result) return result;
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
+  throw new Error("Unknown Ethereum Standard");
 }
 function build(data) {
   var query = [];
@@ -119,4 +189,4 @@ function build(data) {
   return "ethereum:" + (data.prefix ? data.prefix + "-" : "") + data.target_address + (data.chain_id ? "@" + data.chain_id : "") + (data.function_name ? "/" + data.function_name : "") + (query.length > 0 ? "?" + query.join("&") : "");
 }
 
-export { EIP681NamedParameters, parse, build };
+export { REGEX, parse, build };
