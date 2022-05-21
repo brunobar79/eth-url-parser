@@ -1,4 +1,4 @@
-const test = require('tape');
+import * as test from 'tape';
 const { parse, build } = require('../dist');
 
 test('parse', (t) => {

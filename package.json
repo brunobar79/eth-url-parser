@@ -3,7 +3,7 @@
     "version": "2.0.0",
     "description": "Ethereum url parsing library",
     "scripts": {
-        "test": "npm run build && node ./tests | tap-spec",
+        "test": "npm run build && ts-node ./tests/index.spec.ts | tap-spec",
         "build": "rollup -c",
         "start": "rollup -c -w",
         "prepublish": "npm run build",
@@ -28,6 +28,7 @@
     "typings": "dist/index.d.ts",
     "jsnext:main": "dist/index.es.js",
     "devDependencies": {
+        "@types/tape": "^4.13.2",
         "@typescript-eslint/parser": "^5.22.0",
         "babel-core": "^6.26.3",
         "babel-eslint": "^8.2.1",
