@@ -14,7 +14,7 @@ export const testParse2400 = (parse: ETHParserFunction) => {
                 transaction_hash:
                     '0x4465e7cce3c784f264301bfe26fc17609855305213ec74c716c7561154b76fec',
             } as EIP2400Object,
-            'Can parse URI with payload starting with `0x`'
+            'Can parse basic tx url'
         );
 
         t.deepEqual(
@@ -32,7 +32,7 @@ export const testParse2400 = (parse: ETHParserFunction) => {
                     events: 'Transfer(!address,!address,uint256);BountyIssued(uint256);ContributionAdded(uint256,!address,uint256);BountyActivated(uint256,address)',
                 },
             } as EIP2400Object,
-            'Can parse URI with payload'
+            'Can parse tx url with method and events'
         );
 
         t.end();
