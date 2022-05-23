@@ -120,7 +120,7 @@ const url = build({
 console.log(url); // 'ethereum:pay-0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD'
 ```
 
-The above method additionally allows for more complex URLs to be built such as but not limited to:
+The above method also allows for more complex URLs to be built such as:
 
 ```typescript
 import { parse, build } from 'eth-url-parser';
