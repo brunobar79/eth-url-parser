@@ -86,11 +86,12 @@ test('parse', (t) => {
 
     t.deepEqual(
         parse(
-            'ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD?value=1&gas=10&gasLimit=21000&gasPrice=50&uint256=-2.014e18'
+            'ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD/test?value=1&gas=10&gasLimit=21000&gasPrice=50&uint256=-2.014e18'
         ),
         {
             scheme: 'ethereum',
             target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
+            function_name: 'test',
             parameters: {
                 value: '1',
                 gas: '10',

@@ -159,6 +159,9 @@ export function parse(uri: string): EIP681Object {
                 continue;
             }
 
+            if (!result.function_name)
+                throw new Error("Missing function_name")
+
             if (!result.args) result.args = [];
 
             result.args.push([variable, value]);
