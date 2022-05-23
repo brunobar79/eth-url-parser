@@ -8,37 +8,6 @@ This module contains two functions which allows you to:
 
 - [Parsing Ethereum URLs](#parsing-an-ethereum-url)
 - [Building Ethereum URLs](#building-an-ethereum-url)
-
-## TLDR;
-
-Takes in a string of an Ethereum URL and returns an object matching that URL according to the previously mentioned standards
-When given input such as:
-
-```url
-ethereum:pay-0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD@1/mint?value=2.014e18&gas=4.5e4&gasPrice=50&uint256=1e3&uint256=1.234e3
-```
-
-The returned object looks like this:
-
-```typescript
-{
-    scheme: 'ethereum',
-    prefix: 'pay',
-    target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD', // ENS names are also supported!
-    chain_id: '1',
-    function_name: 'mint',
-    parameters: {
-        'value': '2014000000000000000', // (in WEI)
-        'gas': '45000', // can be also gasLimit
-        'gasPrice': '50',
-    },
-    args: [
-        ['uint256', '1000'],
-        ['uint256', '1234'],
-    ]
-}
-```
-
 ## Getting started
 
 To get started simply add `eth-url-parser` to your `package.json` or run one of the following commands:
