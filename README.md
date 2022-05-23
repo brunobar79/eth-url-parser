@@ -52,7 +52,7 @@ yarn add eth-url-parser
 pnpm add eth-url-parser
 ```
 
-And that's it! You are now ready to get started reading and writing Ethereum URLs.
+And that's it! You are now ready to get started building and parsing Ethereum URLs.
 
 ## Usage
 
