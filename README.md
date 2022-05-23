@@ -4,7 +4,7 @@
 
 Module that supports parsing / building of all the different ethereum standard urls: [ERC-681](https://eips.ethereum.org/EIPS/eip-681) and [ERC-831](https://eips.ethereum.org/EIPS/eip-831)
 
-This module contains two functions:
+This module contains two functions which allows you to:
 
 - [Parsing Ethereum URLs](#parsing-an-ethereum-url)
 - [Building Ethereum URLs](#building-an-ethereum-url)
