@@ -70,17 +70,6 @@ Parsing an ethereum url can be done with the following code segment:
 import { parse, build } from 'eth-url-parser';
 
 const parsedUrl = parse('ethereum:pay-0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD@1/mint?value=2.014e18&gas=4.5e4&gasPrice=50&uint256=1e3&uint256=1.234e3');
-
-console.log(parsedUrl.scheme); // 'ethereum'
-console.log(parsedUrl.prefix); // 'pay'
-console.log(parsedUrl.target_address); // '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD'
-console.log(parsedUrl.chain_id); // '1'
-console.log(parsedUrl.function_name); // 'mint'
-console.log(parsedUrl.parameters.value); // '2014000000000000000'
-console.log(parsedUrl.parameters.gas); // '45000'
-console.log(parsedUrl.parameters.gasPrice); // '50'
-console.log(parsedUrl.args[0]); // ['uint256', '1000']
-console.log(parsedUrl.args[1]); // ['uint256', '1234']
 ```
 
 The returned value stored in `parsedUrl` is typed using [EIP681Object](#eip681object) and would look as follows:
@@ -116,8 +105,12 @@ const url = build({
     prefix: 'pay',
     target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
 });
-            
-console.log(url); // 'ethereum:pay-0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD'
+```
+
+Which results in the following output:
+
+```URL
+ethereum:pay-0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD
 ```
 
 The above method also allows for more complex URLs to be built such as:
@@ -141,8 +134,12 @@ const url = build({
         ['uint256', '1234'],
     ]
 });
+```
 
-console.log(url); // 'ethereum:pay-0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD@1/mint?value=2.014e18&gas=4.5e4&gasPrice=50&uint256=1e3&uint256=1.234e3'
+Which results in the following output:
+
+```URL
+ethereum:pay-0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD@1/mint?value=2.014e18&gas=4.5e4&gasPrice=50&uint256=1e3&uint256=1.234e3
 ```
 
 ## Types
