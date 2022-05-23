@@ -47,6 +47,9 @@ export const parse681: ETHParserFunction = (uri) => {
                 continue;
             }
 
+            if (!result.function_name)
+                throw new Error("Missing function_name");
+
             if (!result.args) result.args = [];
 
             result.args.push([variable, value]);

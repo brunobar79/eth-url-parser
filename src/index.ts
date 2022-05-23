@@ -162,21 +162,6 @@ export const parse: ETHParserFunction = (uri) => {
         if (result) return result;
     }
 
-    // const twentyfourhundred = new RegExp(regex_2400);
-    // const twentyfourhundred_match = uri.match(twentyfourhundred);
-    // if (twentyfourhundred_match) {
-
-    //     return;
-    // }
-
-    // const fiftyninetyfour = new RegExp(regex_5094);
-    // const fiftyninetyfour_match = uri.match(fiftyninetyfour);
-
-    // if (fiftyninetyfour_match) {
-
-    //     return;
-    // }
-
     throw new Error('Unknown Ethereum Standard');
 };
 

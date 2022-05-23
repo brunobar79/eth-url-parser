@@ -24,16 +24,6 @@ export const testParse681 = (parse: ETHParserFunction) => {
             'Can parse URI with payload starting with `0x` and `pay` prefix'
         );
 
-        // t.deepEqual(
-        //     parse('ethereum:foo-0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD'),
-        //     {
-        //         scheme: 'ethereum',
-        //         prefix: 'foo',
-        //         target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
-        //     },
-        //     'Can parse URI with payload starting with `0x` and `foo` prefix'
-        // );
-
         t.deepEqual(
             parse('ethereum:pay-doge-to-the-moon.eth'),
             {
@@ -74,12 +64,13 @@ export const testParse681 = (parse: ETHParserFunction) => {
 
         t.deepEqual(
             parse(
-                'ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD?value=2.014e18&gas=10&gasLimit=21000&gasPrice=50'
+                'ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD/test?value=2.014e18&gas=10&gasLimit=21000&gasPrice=50'
             ),
             {
                 scheme: 'ethereum',
                 prefix: 'pay',
                 target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
+                function_name: 'test',
                 parameters: {
                     value: '2014000000000000000',
                     gas: '10',
@@ -92,12 +83,13 @@ export const testParse681 = (parse: ETHParserFunction) => {
 
         t.deepEqual(
             parse(
-                'ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD?value=1&gas=10&gasLimit=21000&gasPrice=50&uint256=-2.014e18'
+                'ethereum:0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD/test?value=1&gas=10&gasLimit=21000&gasPrice=50&uint256=-2.014e18'
             ),
             {
                 scheme: 'ethereum',
                 prefix: 'pay',
                 target_address: '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD',
+                function_name: 'test',
                 parameters: {
                     value: '1',
                     gas: '10',
