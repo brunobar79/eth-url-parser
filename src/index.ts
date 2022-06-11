@@ -1,13 +1,16 @@
 import { BigNumber } from 'bignumber.js';
 
+import { parse681 } from './parse681';
+import { parse2400 } from './parse2400';
+import { parse5094 } from './parse5094';
+
 export type ETHAddress = string;
 export type ENSName = string;
 export type SolidityType = string;
-export const EIP681NamedParameters = ['value', 'gas', 'gasLimit', 'gasPrice'];
 
 export type EIP681Object = {
     scheme: 'ethereum';
-    prefix?: 'pay' | string;
+    prefix?: 'pay';
     /**
      * Target Address in the format `0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD` or `doge-to-the-moon.eth`
      */
@@ -36,45 +39,76 @@ export type EIP681Object = {
     args?: [SolidityType, string][];
 };
 
+export type EIP2400Object = {
+    scheme: 'ethereum';
+    prefix: 'tx';
+    /**
+     * Transaction Hash in the format `0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD`
+     */
+    transaction_hash: ETHAddress;
+    /**
+     * The chain at which this action should be performed
+     * If undefined assume the current user's chain.
+     */
+    chain_id?: `${number}`;
+    /**
+     * Named variables
+     */
+    parameters?: Partial<{
+        method: string; // not 100% sure what these types are
+        events: string; // not 100% sure what these types are
+    }>;
+};
+
+export type EIP5094Object = {
+    scheme: 'ethereum';
+    prefix: 'networkadd';
+    /**
+     * Chain id of the chain that ought to be added to the users wallet.
+     */
+    chain_id: `${number}`;
+    /**
+     * Named variables
+     */
+    parameters: {
+        rpc_url: string[];
+        chain_name: string;
+    } & Partial<{
+        name: string;
+        symbol: string;
+        decimals: number;
+        explorer_url: string[];
+        icon_url: string[];
+    }>;
+};
+
+export type ETHObject = EIP681Object | EIP2400Object | EIP5094Object;
+
+const ethereum_regex = '^ethereum:';
 const number_regex =
     /^(?<major>[+-]?\d+)(?:\.(?<minor>\d+))?(?:[Ee](?<exponent>\d+))?$/;
 const prefix_regex = '(?<prefix>[a-zA-Z]+)-';
 const address_regex =
     '(?:0x[\\w]{40})|(?:[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9].[a-zA-Z]{2,})';
+const txaddress_regex = '0x[\\w]{64}';
 
 // Full regex for matching
-const full_regex = `^ethereum:(?:${prefix_regex})?(?<address>${address_regex})\\@?(?<chain_id>[\\w]*)*\\/?(?<function_name>[\\w]*)*(?<query>\\?.*)?`;
+const regex_generic = '${ethereum_regex}(?:${prefix_regex})'; // Check if it matches eip-831 aka "An ethereum URL"
+const regex_681 = `${ethereum_regex}(?:pay-)?(?<address>${address_regex})\\@?(?<chain_id>[\\w]*)*\\/?(?<function_name>[\\w]*)*(?<query>\\?.*)?`;
+const regex_2400 = `${ethereum_regex}tx-(?<address>${txaddress_regex})\\@?(?<chain_id>[\\w]*)*\\/?(?<function_name>[\\w]*)*(?<query>\\?.*)?`;
+const regex_5094 = `${ethereum_regex}network-add\\@?(?<chain_id>[\\w]*)*\\/?(?<query>\\?.*)?`;
 
-/**
- * Cleanup any unresolved values in the query parameters
- *
- * Converts '2.014e18' to '2014000000000000000'
- *
- * @param {string} variable string.
- * @param {string} value string.
- *
- * @return {string}
- */
-function processValue(variable: string, value: string): string {
-    const isReserved = EIP681NamedParameters.includes(variable);
-    const isNumber = number_regex.test(value);
-
-    if (isReserved && !isNumber)
-        throw new Error(variable + ' needs to be a number');
-
-    if (isNumber) {
-        const match = value.match(number_regex).groups;
-
-        value = new BigNumber(
-            `${match.major}${match.minor ? '.' + match.minor : ''}${
-                match.exponent ? 'e+' + match.exponent : ''
-            }`,
-            10
-        ).toString();
-    }
-
-    return value;
-}
+export const REGEX = {
+    ethereum_regex,
+    number_regex,
+    prefix_regex,
+    address_regex,
+    txaddress_regex,
+    regex_generic,
+    regex_681,
+    regex_2400,
+    regex_5094,
+};
 
 /**
  * Cleanup any unresolved values in the query parameters
@@ -100,6 +134,9 @@ function stringifyValue(variable: string, value: string): string {
     return value;
 }
 
+export type ETHParserFunction = (_uri: string) => ETHObject | undefined;
+const supported_specs: ETHParserFunction[] = [parse2400, parse5094, parse681];
+
 /**
  * Parse an Ethereum URI according to ERC-831 and ERC-681
  *
@@ -107,7 +144,7 @@ function stringifyValue(variable: string, value: string): string {
  *
  * @return {object}
  */
-export function parse(uri: string): EIP681Object {
+export const parse: ETHParserFunction = (uri) => {
     // Verify we are dealing with a string
     if (!uri || typeof uri !== 'string') {
         throw new Error('uri must be a string');
@@ -118,63 +155,15 @@ export function parse(uri: string): EIP681Object {
         throw new Error('Not an Ethereum URI');
     }
 
-    const exp = new RegExp(full_regex);
-    const data = uri.match(exp);
+    // Figure out what spec this is, and have it parse it!
+    for (const parseFunc of supported_specs) {
+        const result = parseFunc(uri);
 
-    if (!data) {
-        throw new Error('Couldn not parse the url');
+        if (result) return result;
     }
 
-    // Parse the query parameters
-    const query = data.groups.query
-        ? data.groups.query.slice(1).split('&')
-        : [];
-
-    // Set a result object ready
-    const result: EIP681Object = {
-        scheme: 'ethereum',
-        prefix: data.groups.prefix,
-        target_address: data.groups.address,
-        chain_id: data.groups.chain_id as `${number}`,
-        function_name: data.groups.function_name,
-    };
-
-    // Set all the query magic
-    if (query) {
-        for (const queryEntry of query) {
-            const variable_and_value = queryEntry.split('=');
-
-            if (variable_and_value.length != 2)
-                throw new Error(
-                    'Query Parameter Malformat (' + queryEntry + ')'
-                );
-
-            const variable = variable_and_value.at(0);
-            const value = processValue(variable, variable_and_value.at(1));
-
-            if (EIP681NamedParameters.includes(variable)) {
-                if (!result.parameters) result.parameters = {};
-
-                result.parameters[variable] = value;
-                continue;
-            }
-
-            if (!result.function_name)
-                throw new Error("Missing function_name")
-
-            if (!result.args) result.args = [];
-
-            result.args.push([variable, value]);
-        }
-    }
-
-    // Destroy any undefined keys
-    for (const key of Object.keys(result)) {
-        if (result[key] === undefined) delete result[key];
-    }
-
-    return result;
-}
+    throw new Error('Unknown Ethereum Standard');
+};
 
 /**
  * Builds a valid Ethereum URI based on the initial parameters
