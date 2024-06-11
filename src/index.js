@@ -75,7 +75,7 @@ export function parse(uri) {
         const amountKey = obj.function_name === 'transfer' ? 'uint256' : 'value';
 
         if(obj.parameters[amountKey]) {
-            obj.parameters[amountKey] = new BigNumber(obj.parameters[amountKey], 10).toString();
+            obj.parameters[amountKey] = new BigNumber(obj.parameters[amountKey], 10).toFixed();
             if (!isFinite(obj.parameters[amountKey])) throw new Error('Invalid amount')
             if (obj.parameters[amountKey] < 0) throw new Error('Invalid amount')
         }
