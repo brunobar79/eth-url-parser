@@ -48,5 +48,9 @@
   },
   "resolutions": {
     "**/trim": "0.0.3"
+  },
+  "homepage": "https://github.com/brunobar79/eth-url-parser#readme",
+  "bugs": {
+    "url": "https://github.com/brunobar79/eth-url-parser/issues"
   }
 }
