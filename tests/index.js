@@ -115,3 +115,40 @@ test('build', (t) => {
 
     t.end();
 });
+
+test('parse is case-insensitive on the scheme (RFC 3986 s3.1)', (t) => {
+    const A = '0x1234DEADBEEF5678ABCD1234DEADBEEF5678ABCD';
+
+    t.deepEqual(parse('Ethereum:' + A), {
+        scheme: 'ethereum',
+        target_address: A
+    }, 'Accepts a mixed-case scheme');
+
+    t.deepEqual(parse('ETHEREUM:' + A), {
+        scheme: 'ethereum',
+        target_address: A
+    }, 'Accepts an upper-case scheme');
+
+    t.deepEqual(parse('EtHeReUm:' + A), {
+        scheme: 'ethereum',
+        target_address: A
+    }, 'Accepts an arbitrarily-cased scheme');
+
+    t.deepEqual(parse('Ethereum:' + A + '@8453?value=1e16'), {
+        scheme: 'ethereum',
+        target_address: A,
+        chain_id: '8453',
+        parameters: { value: '10000000000000000' }
+    }, 'Mixed-case scheme with chain + scientific-notation value');
+
+    ['notanaethereum:', 'eth:', '', 'Ethereum:nothex'].forEach((bad) => {
+        t.throws(() => parse(bad), 'Still rejects ' + JSON.stringify(bad));
+    });
+
+    t.deepEqual(parse('ethereum:' + A), {
+        scheme: 'ethereum',
+        target_address: A
+    }, 'Mixed-case checksummed address is returned verbatim');
+
+    t.end();
+});

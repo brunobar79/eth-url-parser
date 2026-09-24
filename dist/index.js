@@ -4712,7 +4712,10 @@ function parse$3(uri) {
         throw new Error('uri must be a string');
     }
 
-    if (uri.substring(0, 9) !== 'ethereum:') {
+    // RFC 3986 s3.1: URI schemes are case-insensitive. `Ethereum:` and
+    // `ETHEREUM:` denote the same scheme as `ethereum:`. The strict
+    // comparison here rejected them as "Not an Ethereum URI".
+    if (uri.substring(0, 9).toLowerCase() !== 'ethereum:') {
         throw new Error('Not an Ethereum URI');
     }
 
@@ -4738,7 +4741,12 @@ function parse$3(uri) {
 
     var full_regex = '^ethereum:(' + prefix + '-)?' + address_regex + '\\@?([\\w]*)*\\/?([\\w]*)*';
 
-    var exp = new RegExp(full_regex);
+    // 'i' so the literal 'ethereum:' prefix inside the pattern matches
+    // regardless of case. Without this, lowercasing only the guard above
+    // merely shifts the failure to 'Couldn not parse the url'.
+    // The address group stays case-sensitive: mixed case is an EIP-55
+    // checksum claim and re-casing it would change the payee.
+    var exp = new RegExp(full_regex, 'i');
     var data = uri.match(exp);
     if (!data) {
         throw new Error('Couldn not parse the url');
