@@ -24,7 +24,25 @@ export function parse(uri) {
     }
 
     let prefix;
-    let address_regex = '(0x[\\w]{40})';
+    // ERC-681: a hex address is `0x` followed by exactly 40 hex digits.
+    //
+    // This used to be '(0x[\\w]{40})' with no boundary assertion. Two bugs
+    // followed from that:
+    //   1. [\\w] is wider than hex -- it also matches '_' and 'g'..'z', so
+    //      'ethereum:0x<40 hex>zzz' parsed as an address.
+    //   2. The group had no right-hand boundary, and the tail of the pattern
+    //      below (`\\@?([\\w]*)*`) accepts the same character class. So an
+    //      over-length address did not fail: digits 41..N were absorbed by
+    //      the *chain_id* group. The address was silently truncated to its
+    //      first 40 digits and a bogus chain_id appeared alongside it --
+    //      'ethereum:0x' + '1'.repeat(41) yielded target_address
+    //      '0x111...1' (40 digits) with chain_id '1'.
+    //
+    // Truncating an address is a payee change, not a cosmetic error, so the
+    // lookahead below makes an over-length address fail to match. It is
+    // zero-width, so capture-group numbering (and therefore data[2]) is
+    // unchanged.
+    let address_regex = '(0x[0-9a-fA-F]{40})(?![0-9a-fA-F])';
 
 
     if (uri.substring(9, 11).toLowerCase() === '0x') {
