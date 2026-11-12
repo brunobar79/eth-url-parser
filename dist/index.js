@@ -4712,12 +4712,33 @@ function parse$3(uri) {
         throw new Error('uri must be a string');
     }
 
-    if (uri.substring(0, 9) !== 'ethereum:') {
+    // RFC 3986 s3.1: URI schemes are case-insensitive. `Ethereum:` and
+    // `ETHEREUM:` denote the same scheme as `ethereum:`. The strict
+    // comparison here rejected them as "Not an Ethereum URI".
+    if (uri.substring(0, 9).toLowerCase() !== 'ethereum:') {
         throw new Error('Not an Ethereum URI');
     }
 
     var prefix = void 0;
-    var address_regex = '(0x[\\w]{40})';
+    // ERC-681: a hex address is `0x` followed by exactly 40 hex digits.
+    //
+    // This used to be '(0x[\\w]{40})' with no boundary assertion. Two bugs
+    // followed from that:
+    //   1. [\\w] is wider than hex -- it also matches '_' and 'g'..'z', so
+    //      'ethereum:0x<40 hex>zzz' parsed as an address.
+    //   2. The group had no right-hand boundary, and the tail of the pattern
+    //      below (`\\@?([\\w]*)*`) accepts the same character class. So an
+    //      over-length address did not fail: digits 41..N were absorbed by
+    //      the *chain_id* group. The address was silently truncated to its
+    //      first 40 digits and a bogus chain_id appeared alongside it --
+    //      'ethereum:0x' + '1'.repeat(41) yielded target_address
+    //      '0x111...1' (40 digits) with chain_id '1'.
+    //
+    // Truncating an address is a payee change, not a cosmetic error, so the
+    // lookahead below makes an over-length address fail to match. It is
+    // zero-width, so capture-group numbering (and therefore data[2]) is
+    // unchanged.
+    var address_regex = '(0x[0-9a-fA-F]{40})(?![0-9a-fA-F])';
 
     if (uri.substring(9, 11).toLowerCase() === '0x') {
         prefix = null;
@@ -4738,7 +4759,12 @@ function parse$3(uri) {
 
     var full_regex = '^ethereum:(' + prefix + '-)?' + address_regex + '\\@?([\\w]*)*\\/?([\\w]*)*';
 
-    var exp = new RegExp(full_regex);
+    // 'i' so the literal 'ethereum:' prefix inside the pattern matches
+    // regardless of case. Without this, lowercasing only the guard above
+    // merely shifts the failure to 'Couldn not parse the url'.
+    // The address group stays case-sensitive: mixed case is an EIP-55
+    // checksum claim and re-casing it would change the payee.
+    var exp = new RegExp(full_regex, 'i');
     var data = uri.match(exp);
     if (!data) {
         throw new Error('Couldn not parse the url');
